@@ -234,6 +234,7 @@ function renderImputations(){
         <td>${rec.outDate?fmtClock(rec.outDate):""}</td>
         <td>${rec.outDate?fmtTime(rec.totalMs):"00:00:00"}</td>
         <td>${rec.outDate?rec.totalDecimal.toFixed(2):"0.00"}</td>
+        <td>${rec.outDate?Math.round(rec.totalMs/60000):"0"}</td>
         <td>${task?task.subject:""}</td>
         <td>${task?task.clientTaskNo||"":""}</td>
         <td>${rec.noFee?"Sí":"No"}</td>
@@ -264,11 +265,15 @@ function updateTotalsBar(){
       return (t && t.subject.toLowerCase().includes(txt)) || (r.comments && r.comments.toLowerCase().includes(txt));
     });
 
-  let totalMs=0,totalDec=0;
+  let totalMs=0,totalDec=0,totalMin=0;
   const dateMap=new Map(); // dateKey -> {billable,min,isHoliday,isVacation}
 
   filtered.forEach(r=>{
-    if(r.outDate && !r.noFee){ totalMs+=r.totalMs; totalDec+=r.totalDecimal; }
+    if(r.outDate && !r.noFee){
+      totalMs+=r.totalMs;
+      totalDec+=r.totalDecimal;
+      totalMin+=r.totalMs/60000;
+    }
 
     const dateKey=r.date.toDateString();
     if(!dateMap.has(dateKey)){
@@ -303,6 +308,7 @@ function updateTotalsBar(){
 
   document.getElementById("totWorked").textContent=fmtTime(totalMs);
   document.getElementById("totDecimal").textContent=round2(totalDec).toString();
+  document.getElementById("totMinutes").textContent=Math.round(totalMin);
   document.getElementById("totLabor").textContent= totLabor;
   document.getElementById("totExpected").textContent= expected;
 }
@@ -318,7 +324,7 @@ function exportImputationsCsv(){
     })
     .sort((a,b)=>b.inDate-a.inDate);
   const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
-  const header=['Fecha','Entrada','Salida','Total','Decimal','Tarea','Nº tarea cliente','No Fee','Festivo','Vacaciones','Comentarios'].join(';');
+  const header=['Fecha','Entrada','Salida','Total','Decimal','Minutos','Tarea','Nº tarea cliente','No Fee','Festivo','Vacaciones','Comentarios'].join(';');
   const rows=list.map(rec=>{
     const task=tasks.find(t=>t.id==rec.taskId);
     return [
@@ -327,6 +333,7 @@ function exportImputationsCsv(){
       rec.outDate?formatInputTime(rec.outDate):'',
       rec.outDate?fmtTime(rec.totalMs):'00:00:00',
       rec.outDate?rec.totalDecimal.toFixed(2):'0.00',
+      rec.outDate?Math.round(rec.totalMs/60000):'0',
       task?task.subject:'',
       task?task.clientTaskNo||'':'',
       rec.noFee?'Sí':'No',
