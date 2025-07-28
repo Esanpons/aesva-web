@@ -82,9 +82,10 @@ function openInvoicesPopup(){
       }
 
       function updateButtons(){
+        const inv = invoices.find(i=>i.no===selectedNo);
         const has = !!selectedNo;
         btnEdit.disabled = !has;
-        btnDel.disabled = !has;
+        btnDel.disabled = !has || (inv && inv.paid);
         btnPrintList.disabled = !has;
       }
 
@@ -100,7 +101,7 @@ function openInvoicesPopup(){
           const cust = customers.find(c=>c.no===inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
-          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust?cust.name:''}</td><td>${invoiceTotal(inv).toFixed(2)}</td>`;
+          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust?cust.name:''}</td><td>${invoiceTotal(inv).toFixed(2)}</td><td>${inv.paid?'Sí':'No'}</td>`;
           if(inv.no===selectedNo) tr.classList.add('selected');
           tr.addEventListener('click',()=>{ selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick',()=>{ const invc=invoices.find(i=>i.no===inv.no); if(invc) openInvoiceModal(invc,no=>{ selectedNo=no; render(); }); });
@@ -152,9 +153,12 @@ function openInvoiceModal(invoice=null,onSave){
   const linesBody = clone.querySelector('#invoiceLinesTable tbody');
   const btnAddLine = clone.querySelector('#BtnAddLine');
   const btnDelLine = clone.querySelector('#BtnDelLine');
+  const btnImport = clone.querySelector('#BtnImportImps');
   const totalsDiv = clone.querySelector('#invoiceTotals');
   const totalSpan = clone.querySelector('#invoiceTotal');
   const btnPrint = clone.querySelector('#BtnPrintInvoice');
+  const btnSave = form.querySelector('button[type="submit"]');
+  const paidChk = form.elements['paid'];
   const linesPerPageInput = form.elements['arrayLinesInvoicePrint'];
 
   let lines = invoice? invoice.lines.map(l=>({...l})) : [];
@@ -214,15 +218,24 @@ function openInvoiceModal(invoice=null,onSave){
         updateTotal();
       });
     });
-    btnDelLine.disabled = selectedLine===null;
+    const locked = paidChk.checked;
+    linesBody.querySelectorAll('input').forEach(inp=>{ inp.disabled = locked; });
+    btnAddLine.disabled = locked;
+    btnDelLine.disabled = selectedLine===null || locked;
+    btnImport.disabled = locked;
     updateTotal();
   }
 
   btnAddLine.addEventListener('click',()=>{ lines.push({description:'', qty:1}); selectedLine=lines.length-1; renderLines(); });
   btnDelLine.addEventListener('click',()=>{ if(selectedLine===null) return; lines.splice(selectedLine,1); selectedLine=null; renderLines(); });
+  btnImport.addEventListener('click',importImps);
 
   if(invoice){
-    Object.entries(invoice).forEach(([k,v])=>{ if(form.elements[k]) form.elements[k].value=v; });
+    Object.entries(invoice).forEach(([k,v])=>{
+      if(!form.elements[k]) return;
+      if(form.elements[k].type==='checkbox') form.elements[k].checked=!!v;
+      else form.elements[k].value=v;
+    });
     customerSel.value = invoice.customerNo;
     form.elements['no'].readOnly = true;
     if(linesPerPageInput) linesPerPageInput.value = invoice.arrayLinesInvoicePrint || '';
@@ -244,6 +257,37 @@ function openInvoiceModal(invoice=null,onSave){
   customerSel.addEventListener('change', syncCustomer);
 
   syncCustomer();
+  updateLocked();
+
+  function updateLocked(){
+    const locked = paidChk.checked;
+    // Disable all editable fields except the paid checkbox itself
+    form.querySelectorAll('input, select, textarea').forEach(el=>{
+      if(el===paidChk) return;
+      if(el.type==='button' || el.type==='submit') return;
+      el.disabled = locked;
+    });
+    renderLines();
+  }
+  paidChk.addEventListener('change', updateLocked);
+
+  function importImps(){
+    if(paidChk.checked) return;
+    const dateVal=form.elements['date'].value;
+    const cust=customerSel.value;
+    if(!dateVal || !cust) return;
+    const d=new Date(dateVal);
+    const total = imputations.filter(imp=>{
+      if(!imp.outDate || imp.noFee) return false;
+      const impDate = imp.date instanceof Date ? imp.date : new Date(imp.date);
+      if(impDate.getFullYear() !== d.getFullYear() || impDate.getMonth() !== d.getMonth()) return false;
+      const t = tasks.find(t=>t.id===imp.taskId);
+      return t && t.customerNo === cust;
+    }).reduce((s,imp)=> s + imp.totalDecimal, 0);
+    lines.push({description:'Horas realizadas en el período', qty: round2(total)});
+    selectedLine=lines.length-1;
+    renderLines();
+  }
 
   function collectData(){
     for(const ln of lines){
@@ -260,7 +304,8 @@ function openInvoiceModal(invoice=null,onSave){
       irpf: parseFloat(form.elements['irpf'].value)||0,
       priceHour: priceHour(),
       arrayLinesInvoicePrint: linesPerPageInput ? linesPerPageInput.value.trim() : '',
-      lines: lines.map(l=>sanitizeStrings({...l}))
+      lines: lines.map(l=>sanitizeStrings({...l})),
+      paid: paidChk.checked
     };
     return sanitizeStrings(base);
   }
@@ -274,26 +319,30 @@ function openInvoiceModal(invoice=null,onSave){
     const data = collectData();
     if(!data) return;
     try{
+      const baseFields = {
+        date: data.date,
+        customerNo: data.customerNo,
+        priceHour: data.priceHour,
+        vat: data.vat,
+        irpf: data.irpf,
+        arrayLinesInvoicePrint: data.arrayLinesInvoicePrint
+      };
+
+      async function attempt(saveFn){
+        try{
+          await saveFn({...baseFields, invoicePayment: data.paid});
+        }catch(err){
+          if(err.code==='PGRST204' && /invoice_payment/.test(err.message||'')){
+            await saveFn({...baseFields, paid: data.paid});
+          }else throw err;
+        }
+      }
+
       if(invoice){
-        await db.update('invoices', {no:invoice.no}, {
-          date: data.date,
-          customerNo: data.customerNo,
-          priceHour: data.priceHour,
-          vat: data.vat,
-          irpf: data.irpf,
-          arrayLinesInvoicePrint: data.arrayLinesInvoicePrint
-        });
+        await attempt(fields=>db.update('invoices',{no:invoice.no},fields));
         await db.delete('invoice_lines',{invoice_no:invoice.no});
       }else{
-        await db.insert('invoices', {
-          no: data.no,
-          date: data.date,
-          customerNo: data.customerNo,
-          priceHour: data.priceHour,
-          vat: data.vat,
-          irpf: data.irpf,
-          arrayLinesInvoicePrint: data.arrayLinesInvoicePrint
-        });
+        await attempt(fields=>db.insert('invoices',{no:data.no,...fields}));
         company.invoiceNumbering = incrementInvoiceNumber(data.no);
         if(company.id)
           await db.update('company',{id:company.id},{invoiceNumbering:company.invoiceNumbering});
@@ -320,4 +369,5 @@ function openInvoiceModal(invoice=null,onSave){
   (currentInvoicesBackdrop||document.body).appendChild(clone);
   renderLines();
   updateTotal();
+  updateLocked();
 }
