@@ -17,18 +17,22 @@
                     <option value="test">Test</option>
                 </select>
             </label>
-            <label>URL Supabase Real
-                <input type="text" name="supabaseUrlReal" required />
-            </label>
-            <label class="full">KEY Supabase Real
-                <input type="text" name="supabaseKeyReal" required />
-            </label>
-            <label>URL Supabase Test
-                <input type="text" name="supabaseUrlTest" />
-            </label>
-            <label class="full">KEY Supabase Test
-                <input type="text" name="supabaseKeyTest" />
-            </label>
+            <div id="realFields" class="env-block">
+                <label>URL Supabase Real
+                    <input type="text" name="supabaseUrlReal" required />
+                </label>
+                <label class="full">KEY Supabase Real
+                    <input type="text" name="supabaseKeyReal" required />
+                </label>
+            </div>
+            <div id="testFields" class="env-block">
+                <label>URL Supabase Test
+                    <input type="text" name="supabaseUrlTest" />
+                </label>
+                <label class="full">KEY Supabase Test
+                    <input type="text" name="supabaseKeyTest" />
+                </label>
+            </div>
             <footer class="full">
                 <button type="submit" class="Buttons primary">Guardar</button>
             </footer>

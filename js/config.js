@@ -24,12 +24,27 @@ function openConfigPopup(){
       const keyReal  = form.elements['supabaseKeyReal'];
       const urlTest  = form.elements['supabaseUrlTest'];
       const keyTest  = form.elements['supabaseKeyTest'];
+      const realBlock = form.querySelector('#realFields');
+      const testBlock = form.querySelector('#testFields');
 
-      envSel.value  = localStorage.getItem('supabaseEnv') || 'real';
-      urlReal.value = localStorage.getItem('supabaseUrlReal') || '';
-      keyReal.value = localStorage.getItem('supabaseKeyReal') || '';
-      urlTest.value = localStorage.getItem('supabaseUrlTest') || '';
-      keyTest.value = localStorage.getItem('supabaseKeyTest') || '';
+      function updateFields(){
+        const env = envSel.value;
+        if(env==='real'){
+          realBlock.classList.remove('hidden');
+          testBlock.classList.add('hidden');
+          urlReal.value = localStorage.getItem('supabaseUrlReal') || '';
+          keyReal.value = localStorage.getItem('supabaseKeyReal') || '';
+        }else{
+          realBlock.classList.add('hidden');
+          testBlock.classList.remove('hidden');
+          urlTest.value = localStorage.getItem('supabaseUrlTest') || '';
+          keyTest.value = localStorage.getItem('supabaseKeyTest') || '';
+        }
+      }
+
+      envSel.value = localStorage.getItem('supabaseEnv') || 'real';
+      updateFields();
+      envSel.addEventListener('change',updateFields);
 
       function closePopup(){
         backdrop.remove();
