@@ -335,7 +335,7 @@ Array.from(document.querySelectorAll('#filterPane li[data-filter]')).forEach(li 
 document.getElementById('searchFilter').addEventListener('input', () => renderImputations());
 
 // Crear imputación abierta
-function createOpenImputation(inDate, taskId, comments = '', noFee = false) {
+async function createOpenImputation(inDate, taskId, comments = '', noFee = false) {
   const ri = round15(inDate);
   const task = tasks.find(t => t.id == taskId);
   const customer = task ? customers.find(c => c.no === task.customerNo) : null;
@@ -357,6 +357,7 @@ function createOpenImputation(inDate, taskId, comments = '', noFee = false) {
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
     minimumDailyHours: customer ? customer.minimumDailyHours : 0
   });
+  await applySpellcheck('imputations', rec, {});
   selectedImputationId = rec.id;
   return db.insert('imputations', {
     ...sanitizeStrings({
@@ -504,6 +505,7 @@ async function updateImputation(id, inDate, outDate, taskId, comments, noFeeChec
       isVacation: isCalendarVacation(ri)
     });
   }
+  await applySpellcheck('imputations', data, rec);
   selectedImputationId = id;
   await db.update('imputations', { id }, data).then(() => loadFromDb()).catch(console.error);
 }
@@ -531,6 +533,7 @@ async function createManualImputation(inDate, outDate, taskId, comments, noFeeCh
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
     minimumDailyHours: customer ? customer.minimumDailyHours : 0
   });
+  await applySpellcheck('imputations', rec, {});
   selectedImputationId = rec.id;
   await db.insert('imputations', {
     ...sanitizeStrings({
