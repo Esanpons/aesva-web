@@ -157,17 +157,24 @@ btnEditImp.addEventListener("click", () => {
 });
 btnDelImp.addEventListener("click", async () => {
   if (!selectedImputationId) return;
-  if (confirm("¿Eliminar imputación?")) {
-    try {
-      await db.delete('imputations', { id: selectedImputationId });
-      await loadFromDb();
-      selectedImputationId = null;
-      updateTimer();
-    } catch (err) {
-      console.error(err);
-      alert('Error al eliminar la imputación');
+  const dialog = document.getElementById('deleteDialog');
+  if (!dialog) return;
+  dialog.returnValue = '';
+  dialog.open = true;
+  dialog.addEventListener('closed', async function handler(e) {
+    dialog.removeEventListener('closed', handler);
+    if (dialog.returnValue === 'delete') {
+      try {
+        await db.delete('imputations', { id: selectedImputationId });
+        await loadFromDb();
+        selectedImputationId = null;
+        updateTimer();
+      } catch (err) {
+        console.error(err);
+        alert('Error al eliminar la imputación');
+      }
     }
-  }
+  });
 });
 btnLoadAllImp.addEventListener("click", async () => {
   await loadFromDb();
@@ -175,12 +182,17 @@ btnLoadAllImp.addEventListener("click", async () => {
 });
 btnExportImp.addEventListener("click", exportImputationsCsv);
 
-function renderImputations() {
+let currentPage = 1;
+const PAGE_SIZE = 20;
+function renderImputations(page = currentPage) {
   imputationsTableBody.innerHTML = "";
   const filter = activeFilter(), txt = document.getElementById("searchFilter").value.toLowerCase();
   const list = filterImputations().sort((a, b) => b.inDate - a.inDate);
   if (selectedImputationId === null && list.length) selectedImputationId = list[0].id;
-  list.forEach(rec => {
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  currentPage = Math.min(page, pages);
+  const slice = list.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  slice.forEach(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
     const tr = document.createElement("tr");
     tr.dataset.id = rec.id;
@@ -193,8 +205,8 @@ function renderImputations() {
         <td>${task ? task.subject : ""}</td>
         <td>${task ? task.clientTaskNo || "" : ""}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
-        <td>${rec.isHoliday ? "Sí" : "No"}</td>
-        <td>${rec.isVacation ? "Sí" : "No"}</td>
+        <td>${rec.isHoliday ? '<span class="chip holiday">Festivo</span>' : ''}</td>
+        <td>${rec.isVacation ? '<span class="chip vacation">Vacaciones</span>' : ''}</td>
         <td>${rec.comments || ""}</td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
     tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
@@ -202,6 +214,7 @@ function renderImputations() {
     imputationsTableBody.appendChild(tr);
   });
   updateTotalsBar(list);
+  updatePaginator(pages);
   updateImputationButtons();
 }
 
@@ -275,6 +288,20 @@ function updateTotalsBar(list = null) {
   document.getElementById("totMinutes").textContent = Math.round(totalMin);
   document.getElementById("totLabor").textContent = totLabor;
   document.getElementById("totExpected").textContent = expected;
+}
+
+function updatePaginator(pages) {
+  const container = document.getElementById('pagination');
+  if (!container) return;
+  container.innerHTML = '';
+  if (pages <= 1) return;
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.className = 'btn btn-sm ' + (i === currentPage ? 'btn-primary' : 'btn-outline-primary');
+    btn.addEventListener('click', () => renderImputations(i));
+    container.appendChild(btn);
+  }
 }
 
 function exportImputationsCsv() {
@@ -463,6 +490,7 @@ function openImputationModal(record = null) {
       }
       backdrop.remove();
       updateTimer();
+      showSnackbar('Imputación guardada');
     } catch (err) {
       console.error(err);
       alert('Error al guardar la imputación');

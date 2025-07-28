@@ -1,172 +1,209 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>Aesva Impute Time</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/calendar-year.css" />
-    <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aesva Impute Time</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <!-- Bootstrap & Custom styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/calendar-year.css">
+  <!-- Material Web Components -->
+  <script type="module" src="https://unpkg.com/@material/web@1.1.1/all.min.js"></script>
 </head>
-
 <body>
-    <!-- Encabezado de la aplicación -->
-    <header class="app-header">
-        <div class="app-header__inner">
-            <div class="app-title">Aesva Impute Time <span id="envLabel" class="env-indicator"></span></div>
-            <div class="app-subtitle">Gestión e imputación de horas</div>
+  <!-- Top App Bar -->
+  <md-top-app-bar fixed>
+    <md-icon-button id="menuBtn" slot="navigationIcon" aria-label="Menú">menu</md-icon-button>
+    <div slot="title">Aesva Impute Time <span id="envLabel" class="env-indicator"></span></div>
+    <md-segmented-button-set slot="actionItems" id="viewButtons">
+      <md-outlined-segmented-button selected data-filter="all">Todo</md-outlined-segmented-button>
+      <md-outlined-segmented-button data-filter="today">Hoy</md-outlined-segmented-button>
+      <md-outlined-segmented-button data-filter="week">Esta semana</md-outlined-segmented-button>
+      <md-outlined-segmented-button data-filter="month">Mes</md-outlined-segmented-button>
+      <md-outlined-segmented-button data-filter="prevMonth">Mes anterior</md-outlined-segmented-button>
+    </md-segmented-button-set>
+  </md-top-app-bar>
+
+  <!-- Navigation Drawer (offcanvas in small screens) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mainDrawer">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menú</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body">
+      <nav class="menu-block mb-4">
+        <ul class="menu-buttons list-unstyled">
+          <li><button id="btnCustomers" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Clientes"><span class="material-symbols-outlined">groups</span></button></li>
+          <li><button id="btnTasks" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Tareas"><span class="material-symbols-outlined">task</span></button></li>
+          <li><button id="btnCalendar" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Calendario"><span class="material-symbols-outlined">calendar_month</span></button></li>
+          <li><button id="btnCompany" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Empresa"><span class="material-symbols-outlined">domain</span></button></li>
+          <li><button id="btnInvoices" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Facturas"><span class="material-symbols-outlined">receipt_long</span></button></li>
+          <li><button id="btnConfig" class="btn btn-outline-primary d-flex align-items-center gap-1" type="button" aria-label="Configuración"><span class="material-symbols-outlined">settings</span></button></li>
+        </ul>
+      </nav>
+      <!-- Hidden filter list for JS -->
+      <ul class="filter-list d-none">
+        <li data-filter="all" class="active">Todo</li>
+        <li data-filter="today">Hoy</li>
+        <li data-filter="week">Esta semana</li>
+        <li data-filter="month">Mes</li>
+        <li data-filter="prevMonth">Mes anterior</li>
+      </ul>
+      <input type="text" id="searchFilter" class="form-control mt-3" placeholder="Filtrar lista por...">
+    </div>
+  </div>
+
+  <main class="container-fluid mt-4">
+    <div class="row g-3">
+      <!-- Sidebar visible on md+ -->
+      <aside id="filterPane" class="col-md-3 col-lg-2 d-none d-md-block">
+        <nav class="menu-block">
+          <h3 class="menu-title">Menú</h3>
+          <ul class="menu-buttons">
+            <li><button id="btnCustomers" class="Buttons primary" type="button">Clientes</button></li>
+            <li><button id="btnTasks" class="Buttons primary" type="button">Tareas</button></li>
+            <li><button id="btnCalendar" class="Buttons primary" type="button">Calendario</button></li>
+            <li><button id="btnCompany" class="Buttons primary" type="button">Empresa</button></li>
+            <li><button id="btnInvoices" class="Buttons primary" type="button">Facturas</button></li>
+            <li><button id="btnConfig" class="Buttons primary" type="button">Configuración</button></li>
+          </ul>
+        </nav>
+        <div class="filters-block">
+          <h3 class="menu-title">Vistas</h3>
+          <ul class="filter-list">
+            <li data-filter="all" class="active">Todo</li>
+            <li data-filter="today">Hoy</li>
+            <li data-filter="week">Esta semana</li>
+            <li data-filter="month">Mes</li>
+            <li data-filter="prevMonth">Mes anterior</li>
+          </ul>
+          <input type="text" id="searchFilter" placeholder="Filtrar lista por...">
         </div>
-    </header>
+      </aside>
 
-    <main>
-        <!-- Panel lateral (menú + filtros) -->
-        <aside id="filterPane">
-            <nav class="menu-block">
-                <h3 class="menu-title">Menú</h3>
-                <ul class="menu-buttons">
-                    <li><button id="btnCustomers" class="Buttons primary" type="button">Clientes</button></li>
-                    <li><button id="btnTasks" class="Buttons primary" type="button">Tareas</button></li>
-                    <li><button id="btnCalendar" class="Buttons primary" type="button">Calendario</button></li>
-                    <li><button id="btnCompany" class="Buttons primary" type="button">Empresa</button></li>
-                    <li><button id="btnInvoices" class="Buttons primary" type="button">Facturas</button></li>
-                    <li><button id="btnConfig" class="Buttons primary" type="button">Configuración</button></li>
-                </ul>
-            </nav>
+      <div class="content col-12 col-md">
+        <!-- Control de fichaje -->
+        <section id="fichaje" class="card">
+          <div id="DivPadre">
+            <div id="DivContainer">
+              <div id="DivContainerTiempoTrabajado">
+                <div class="TiempoTrabajado" id="TitleTiempoTotalTrabajado">Tiempo total (hoy)</div>
+                <div class="TiempoTrabajado" id="TiempoTotalTrabajado">00:00:00</div>
+              </div>
 
-            <div class="filters-block">
-                <h3 class="menu-title">Vistas</h3>
-                <ul class="filter-list">
-                    <li data-filter="all" class="active">Todo</li>
-                    <li data-filter="today">Hoy</li>
-                    <li data-filter="week">Esta semana</li>
-                    <li data-filter="month">Mes</li>
-                    <li data-filter="prevMonth">Mes anterior</li>
-                </ul>
-                <input type="text" id="searchFilter" placeholder="Filtrar lista por..." />
+              <div class="current-task-block">
+                <label for="currentTaskSelect" class="field-label">Tarea actual</label>
+                <input id="currentTaskSelect" class="field-control" list="taskOptions" />
+                <datalist id="taskOptions"></datalist>
+              </div>
+
+              <div id="DivContainerButtons">
+                <button class="Buttons" id="BtnEntrar" type="button">Entrar</button>
+                <button class="Buttons" id="BtnSalir" type="button" disabled>Salir</button>
+              </div>
+              <div id="DivUltimaAccion">
+                <div class="TextUltima" id="UltimaAccionEntrada"></div>
+                <div class="TextUltima" id="UltimaAccionSalida"></div>
+              </div>
             </div>
-        </aside>
+          </div>
+        </section>
 
-        <div class="content">
-            <!-- Control de fichaje -->
-            <section id="fichaje" class="card">
-                <div id="DivPadre">
-                    <div id="DivContainer">
-                        <div id="DivContainerTiempoTrabajado">
-                            <div class="TiempoTrabajado" id="TitleTiempoTotalTrabajado">Tiempo total (hoy)</div>
-                            <div class="TiempoTrabajado" id="TiempoTotalTrabajado">00:00:00</div>
-                        </div>
-
-                        <!-- Selector de tarea actual estilizado -->
-                        <div class="current-task-block">
-                            <label for="currentTaskSelect" class="field-label">Tarea actual</label>
-                            <input id="currentTaskSelect" class="field-control" list="taskOptions" />
-                            <datalist id="taskOptions"></datalist>
-                        </div>
-
-                        <div id="DivContainerButtons">
-                            <button class="Buttons" id="BtnEntrar" type="button">Entrar</button>
-                            <button class="Buttons" id="BtnSalir" type="button" disabled>Salir</button>
-                        </div>
-                        <div id="DivUltimaAccion">
-                            <div class="TextUltima" id="UltimaAccionEntrada"></div>
-                            <div class="TextUltima" id="UltimaAccionSalida"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tabla de imputaciones -->
-            <section id="tableWrapper" class="card">
-                <header class="section-header">
-                    <h2>Imputaciones</h2>
-                    <div class="header-buttons">
-                        <button class="Buttons" id="BtnAddImputation" type="button">+ Añadir imputación</button>
-                        <button class="Buttons primary" id="BtnEditImputation" type="button" disabled>Editar</button>
-                        <button class="Buttons" id="BtnDelImputation" type="button" disabled>Eliminar</button>
-                        <button class="Buttons" id="BtnLoadAllImp" type="button">Cargar todo</button>
-                        <button class="Buttons" id="BtnExportImp" type="button">Exportar CSV</button>
-                    </div>
-                </header>
-                <div class="table-responsive">
-                    <table id="imputationsTable">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Total</th>
-                                <th>Decimal</th>
-                                <th>Minutos</th>
-                                <th>Tarea</th>
-                                <th>Nº tarea cliente</th>
-                                <th>No Fee</th>
-                                <th>Festivo</th>
-                                <th>Vacaciones</th>
-                                <th>Comentarios</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div id="totalsBar">
-                    <div><span>Tiempo trabajado:</span><strong id="totWorked">00:00:00</strong></div>
-                    <div><span>Tiempo Decimal:</span><strong id="totDecimal">0</strong></div>
-                    <div><span>Tiempo en minutos:</span><strong id="totMinutes">0</strong></div>
-                    <div><span>Total horas laborales:</span><strong id="totLabor">0</strong></div>
-                    <div><span>Horas previstas:</span><strong id="totExpected">0</strong></div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- Template modal de Imputaciones -->
-    <template id="imputationModalTmpl">
-        <div class="modal-backdrop">
-            <div class="modal">
-                <header>
-                    <span class="modal-title">Nueva imputación</span>
-                    <button class="close" type="button">×</button>
-                </header>
-                <form id="imputationForm">
-                    <input type="hidden" name="id" />
-                    <label>Fecha
-                        <input type="date" name="date" required />
-                    </label>
-                    <label>Hora entrada
-                        <input type="time" name="inTime" step="900" required />
-                    </label>
-                    <label>Hora salida
-                        <input type="time" name="outTime" step="900" />
-                    </label>
-                    <label>Tarea
-                        <input name="taskId" list="taskOptions" />
-                    </label>
-                    <label class="check"><input type="checkbox" name="noFee" /> No Fee</label>
-                    <label class="full">Comentarios
-                        <input type="text" name="comments" />
-                    </label>
-                    <footer class="full">
-                        <button type="submit" class="Buttons primary">Guardar</button>
-                    </footer>
-                </form>
+        <!-- Tabla de imputaciones -->
+        <section id="tableWrapper" class="card">
+          <header class="section-header">
+            <h2>Imputaciones</h2>
+            <div class="header-buttons">
+              <md-fab id="BtnAddImputation" aria-label="Añadir imputación"><md-icon>add</md-icon></md-fab>
+              <md-outlined-icon-button id="BtnEditImputation" aria-label="Editar" disabled><md-icon>edit</md-icon></md-outlined-icon-button>
+              <md-outlined-icon-button id="BtnDelImputation" aria-label="Eliminar" disabled><md-icon>delete</md-icon></md-outlined-icon-button>
+              <md-outlined-icon-button id="BtnLoadAllImp" aria-label="Cargar todo"><md-icon>download</md-icon></md-outlined-icon-button>
+              <md-outlined-icon-button id="BtnExportImp" aria-label="Exportar CSV"><md-icon>file_download</md-icon></md-outlined-icon-button>
             </div>
-        </div>
-    </template>
+          </header>
+          <div class="table-responsive">
+            <table id="imputationsTable" class="table table-striped">
+              <thead class="sticky-top">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Total</th>
+                  <th>Decimal</th>
+                  <th>Minutos</th>
+                  <th>Tarea</th>
+                  <th>Nº tarea cliente</th>
+                  <th>No Fee</th>
+                  <th>Festivo</th>
+                  <th>Vacaciones</th>
+                  <th>Comentarios</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="totalsBar"></div>
+        </section>
+      </div>
+    </div>
+  </main>
 
-    <!-- Scripts -->
-    <script src="js/conection-bbdd.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/google-ai.js"></script>
-    <script src="js/data-loader.js"></script>
-    <script src="js/impute-hours.js"></script>
-    <script src="js/customers.js"></script>
-    <script src="js/tasks.js"></script>
-    <script src="js/calendar.js"></script>
-    <script src="js/calendar-year.js"></script>
-    <script src="js/company.js"></script>
-    <script src="js/invoice-print.js"></script>
-    <script src="js/invoices.js"></script>
+  <!-- Pagination placeholder -->
+  <nav id="pagination" class="mt-3"></nav>
+
+  <!-- Modal template -->
+  <template id="imputationModalTmpl">
+    <md-dialog class="fade-in">
+      <div slot="headline" class="modal-title">Nueva imputación</div>
+      <div slot="content">
+        <form id="imputationForm" class="d-grid gap-2">
+          <input type="hidden" name="id">
+          <md-filled-text-field name="date" label="Fecha" type="date" required></md-filled-text-field>
+          <md-filled-text-field name="inTime" label="Hora entrada" type="time" step="900" required></md-filled-text-field>
+          <md-filled-text-field name="outTime" label="Hora salida" type="time" step="900"></md-filled-text-field>
+          <md-filled-text-field name="taskId" label="Tarea" list="taskOptions"></md-filled-text-field>
+          <md-checkbox name="noFee" label="No Fee"></md-checkbox>
+          <md-filled-text-field class="full" name="comments" label="Comentarios"></md-filled-text-field>
+        </form>
+      </div>
+      <div slot="actions">
+        <md-text-button data-md-dialog-action="cancel">Cancelar</md-text-button>
+        <md-filled-button form="imputationForm" type="submit">Guardar</md-filled-button>
+      </div>
+    </md-dialog>
+  </template>
+
+  <!-- Snackbar -->
+  <md-snackbar id="mainSnackbar"></md-snackbar>
+
+  <md-dialog id="deleteDialog" class="fade-in">
+    <div slot="headline">Eliminar imputación</div>
+    <div slot="content">¿Eliminar imputación seleccionada?</div>
+    <div slot="actions">
+      <md-text-button data-md-dialog-action="cancel">Cancelar</md-text-button>
+      <md-text-button data-md-dialog-action="delete"><md-icon slot="icon">delete</md-icon>Eliminar</md-text-button>
+    </div>
+  </md-dialog>
+
+  <!-- Scripts -->
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="js/conection-bbdd.js"></script>
+  <script defer src="js/config.js"></script>
+  <script defer src="js/google-ai.js"></script>
+  <script defer src="js/data-loader.js"></script>
+  <script defer src="js/impute-hours.js"></script>
+  <script defer src="js/customers.js"></script>
+  <script defer src="js/tasks.js"></script>
+  <script defer src="js/calendar.js"></script>
+  <script defer src="js/calendar-year.js"></script>
+  <script defer src="js/company.js"></script>
+  <script defer src="js/invoice-print.js"></script>
+  <script defer src="js/invoices.js"></script>
+  <script defer src="js/ui-enhancements.js"></script>
 </body>
-
 </html>
