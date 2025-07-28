@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <title>Tareas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 
@@ -16,10 +19,10 @@
         <div class="section-header">
             <h2>Listado de tareas</h2>
             <div>
-                <button class="Buttons icon-btn" id="BtnAddTask" type="button" aria-label="Nueva tarea"></button>
-                <button class="Buttons primary icon-btn" id="BtnEditTask" type="button" disabled aria-label="Editar"></button>
-                <button class="Buttons icon-btn" id="BtnDupTask" type="button" disabled aria-label="Duplicar"></button>
-                <button class="Buttons icon-btn" id="BtnDelTask" type="button" disabled aria-label="Eliminar"></button>
+                <button class="btn icon-btn" id="BtnAddTask" type="button" title="Nueva tarea" aria-label="Nueva tarea"><span class="material-icons">add</span></button>
+                <button class="btn btn-primary icon-btn" id="BtnEditTask" type="button" disabled title="Editar" aria-label="Editar"><span class="material-icons">edit</span></button>
+                <button class="btn icon-btn" id="BtnDupTask" type="button" disabled title="Duplicar" aria-label="Duplicar"><span class="material-icons">content_copy</span></button>
+                <button class="btn icon-btn" id="BtnDelTask" type="button" disabled title="Eliminar" aria-label="Eliminar"><span class="material-icons">delete</span></button>
             </div>
         </div>
         <div style="margin-bottom:0.5rem">
@@ -89,7 +92,7 @@
                             <input type="text" name="sprint" />
                         </label>
                         <footer class="full">
-                            <button type="submit" class="Buttons primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </footer>
                     </form>
                 </div>

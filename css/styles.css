@@ -234,43 +234,22 @@ main {
 }
 
 /* ===================== BUTTONS ===================== */
-.Buttons {
-  min-width: 130px;
-  height: 40px;
-  color: #fff;
-  padding: 5px 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  border-radius: 40px;
-  font-family: 'Segoe UI', sans-serif;
-  border: 2px solid;
-  background: var(--accent);
-  border-color: var(--accent);
-  font-size: .8rem;
-  text-decoration: none;
-}
-
-/* Icon buttons */
+/* Basic icon button size */
 .icon-btn {
   width: 40px;
   min-width: 40px;
   height: 40px;
   padding: 0;
-  font-size: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
-
-.icon-btn::before {
-  content: var(--icon);
+.btn.icon-btn span {
   font-size: 1.2rem;
-  line-height: 1;
 }
 
-.Buttons:hover:not(:disabled) {
+.btn:hover:not(:disabled) {
   background: #fff;
   color: var(--accent);
 }
@@ -348,61 +327,22 @@ button[id^="BtnEdit"]:hover:not(:disabled) {
   color: #ff8c00;
 }
 
-.Buttons.primary {
+.btn-primary {
   background: var(--primary);
   border-color: var(--primary);
 }
 
-.Buttons.primary:hover {
+.btn-primary:hover {
   background: #fff;
   color: var(--primary);
 }
 
-.Buttons:disabled {
+.btn:disabled {
   opacity: .5;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-/* ===== Icon definitions ===== */
-#btnCustomers { --icon: "👥"; }
-#btnTasks { --icon: "🗒️"; }
-#btnCalendar { --icon: "📅"; }
-#btnCompany { --icon: "🏢"; }
-#btnInvoices { --icon: "🧾"; }
-#btnConfig { --icon: "⚙️"; }
-
-#BtnEntrar { --icon: "▶️"; }
-#BtnSalir { --icon: "⏹️"; }
-#BtnAddImputation { --icon: "➕"; }
-#BtnEditImputation { --icon: "✏️"; }
-#BtnDelImputation { --icon: "🗑️"; }
-#BtnLoadAllImp { --icon: "🔄"; }
-#BtnExportImp { --icon: "📤"; }
-
-#BtnAddTask { --icon: "➕"; }
-#BtnEditTask { --icon: "✏️"; }
-#BtnDupTask { --icon: "📑"; }
-#BtnDelTask { --icon: "🗑️"; }
-
-#BtnAddCustomer { --icon: "➕"; }
-#BtnEditCustomer { --icon: "✏️"; }
-#BtnDelCustomer { --icon: "🗑️"; }
-
-#BtnAddInvoice { --icon: "➕"; }
-#BtnEditInvoice { --icon: "✏️"; }
-#BtnDelInvoice { --icon: "🗑️"; }
-#BtnPrintInv { --icon: "🖨️"; }
-#BtnAddLine { --icon: "➕"; }
-#BtnDelLine { --icon: "🗑️"; }
-#BtnImportImps { --icon: "📥"; }
-#BtnPrintInvoice { --icon: "🖨️"; }
-
-#BtnAddCal { --icon: "➕"; }
-#BtnEditCal { --icon: "✏️"; }
-#BtnDelCal { --icon: "🗑️"; }
-#BtnYearView { --icon: "📅"; }
-#btnCalDelete { --icon: "🗑️"; }
 
 /* ===================== TABLES ===================== */
 .section-header {
