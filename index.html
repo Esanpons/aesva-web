@@ -12,7 +12,7 @@
     <!-- Encabezado de la aplicación -->
     <header class="app-header">
         <div class="app-header__inner">
-            <div class="app-title">Aesva Impute Time</div>
+            <div class="app-title">Aesva Impute Time <span id="envLabel" class="env-indicator"></span></div>
             <div class="app-subtitle">Gestión e imputación de horas</div>
         </div>
     </header>
@@ -28,6 +28,7 @@
                     <li><button id="btnCalendar" class="Buttons primary" type="button">Calendario</button></li>
                     <li><button id="btnCompany" class="Buttons primary" type="button">Empresa</button></li>
                     <li><button id="btnInvoices" class="Buttons primary" type="button">Facturas</button></li>
+                    <li><button id="btnConfig" class="Buttons primary" type="button">Configuración</button></li>
                 </ul>
             </nav>
 
@@ -38,6 +39,7 @@
                     <li data-filter="today">Hoy</li>
                     <li data-filter="week">Esta semana</li>
                     <li data-filter="month">Mes</li>
+                    <li data-filter="prevMonth">Mes anterior</li>
                 </ul>
                 <input type="text" id="searchFilter" placeholder="Filtrar lista por..." />
             </div>
@@ -93,6 +95,7 @@
                                 <th>Salida</th>
                                 <th>Total</th>
                                 <th>Decimal</th>
+                                <th>Minutos</th>
                                 <th>Tarea</th>
                                 <th>Nº tarea cliente</th>
                                 <th>No Fee</th>
@@ -107,6 +110,7 @@
                 <div id="totalsBar">
                     <div><span>Tiempo trabajado:</span><strong id="totWorked">00:00:00</strong></div>
                     <div><span>Tiempo Decimal:</span><strong id="totDecimal">0</strong></div>
+                    <div><span>Tiempo en minutos:</span><strong id="totMinutes">0</strong></div>
                     <div><span>Total horas laborales:</span><strong id="totLabor">0</strong></div>
                     <div><span>Horas previstas:</span><strong id="totExpected">0</strong></div>
                 </div>
@@ -150,6 +154,7 @@
 
     <!-- Scripts -->
     <script src="js/conection-bbdd.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/impute-hours.js"></script>
     <script src="js/customers.js"></script>
     <script src="js/tasks.js"></script>

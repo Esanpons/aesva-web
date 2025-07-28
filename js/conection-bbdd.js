@@ -8,13 +8,22 @@ window.dbReady = (async()=>{
     await new Promise(res=>{s.onload=res;});
   }
 
-  let url=localStorage.getItem('supabaseUrl');
-  if(!url) url=prompt('Supabase URL');
-  let key=localStorage.getItem('supabaseKey');
-  if(!key) key=prompt('Supabase KEY');
-  if(url) localStorage.setItem('supabaseUrl',url);
-  if(key) localStorage.setItem('supabaseKey',key);
-  window.supabaseClient=supabase.createClient(url,key);
+  if(!window.supabaseCreds) window.supabaseCreds = {url:'',key:''};
+
+  // Wait for credentials loaded from config.js
+  await new Promise(res=>{
+    if(window.supabaseCreds.url && window.supabaseCreds.key) return res();
+    document.addEventListener('credsLoaded',res,{once:true});
+  });
+
+  if(!supabaseCreds.url || !supabaseCreds.key){
+    document.addEventListener('DOMContentLoaded',()=>{
+      if(window.openConfigPopup) window.openConfigPopup();
+    });
+    await new Promise(res=>document.addEventListener('configSaved',res,{once:true}));
+  }
+
+  window.supabaseClient=supabase.createClient(supabaseCreds.url,supabaseCreds.key);
 
   const camel=str=>str.replace(/_([a-z])/g,(m,g)=>g.toUpperCase());
   const decamel=str=>str.replace(/([A-Z])/g,m=>'_'+m.toLowerCase());
