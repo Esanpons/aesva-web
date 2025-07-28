@@ -260,6 +260,12 @@ function openInvoiceModal(invoice=null,onSave){
 
   function updateLocked(){
     const locked = paidChk.checked;
+    // Disable all editable fields except the paid checkbox itself
+    form.querySelectorAll('input, select, textarea').forEach(el=>{
+      if(el===paidChk) return;
+      if(el.type==='button' || el.type==='submit') return;
+      el.disabled = locked;
+    });
     btnSave.disabled = locked;
     renderLines();
   }
