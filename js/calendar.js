@@ -118,14 +118,22 @@ function openCalendarPopup() {
       function updateSummary(){
         if(!summaryDiv) return;
         const year = yearSel.value;
-        const vac = calendarDays.filter(d=>d.type==='vacaciones' && d.date.startsWith(year)).length;
-        const fest = calendarDays.filter(d=>d.type==='festivo' && d.date.startsWith(year)).length;
-        const nolab = calendarDays.filter(d=>d.type==='no_laboral' && d.date.startsWith(year)).length;
-        let working=0;
+        let vac=0, fest=0, nolab=0, labor=0;
         for(let d=new Date(year,0,1); d.getFullYear()==year; d.setDate(d.getDate()+1)){
-          if(weekConfig[d.getDay()]) working++;
+          const dateStr=d.toISOString().substring(0,10);
+          const rec=calendarDays.find(c=>c.date===dateStr);
+          const working=weekConfig[d.getDay()];
+          if(rec){
+            if(rec.type==='vacaciones') vac++;
+            else if(rec.type==='festivo') fest++;
+            else if(rec.type==='no_laboral') nolab++;
+          }
+          if(!working && !rec){
+            nolab++;
+          }else if(working){
+            if(!rec || (rec.type!=='vacaciones' && rec.type!=='festivo' && rec.type!=='no_laboral')) labor++;
+          }
         }
-        const labor = working - vac - fest - nolab;
         const remain = (company.totalVacationDays||0) - vac;
         summaryDiv.innerHTML=`
           <div><span>Vacaciones</span><strong>${vac}</strong></div>
@@ -141,11 +149,28 @@ function openCalendarPopup() {
           .content.cloneNode(true);
         const bd = tmpl.querySelector(".modal-backdrop");
         const form = tmpl.querySelector("#calForm");
+        const delBtn = tmpl.querySelector("#btnCalDelete");
         if (rec) {
           form.elements.date.value = rec.date;
           form.elements.type.value = rec.type;
           form.elements.desc.value = rec.desc || "";
           tmpl.querySelector(".modal-title").textContent = "Editar día";
+          delBtn.addEventListener('click', async()=>{
+            if(confirm("¿Eliminar día?")){
+              try{
+                await db.delete('calendar_days',{date:rec.date});
+                await loadFromDb();
+                closeModal();
+                selectedDate=null;
+                renderDays();
+                recalcCalendarFlags();
+                updateSummary();
+              }catch(err){console.error(err);alert('Error al eliminar el día');}
+            }
+          });
+        }
+        else {
+          delBtn.style.display='none';
         }
         function closeModal() {
           bd.remove();
@@ -216,7 +241,7 @@ function openCalendarPopup() {
       yearSel.addEventListener("change", updateSummary);
       typeSel.addEventListener("change", () => { renderDays(); });
       typeSel.addEventListener("change", updateSummary);
-      if(btnYear) btnYear.addEventListener("click", openYearView);
+      if(btnYear) btnYear.addEventListener("click", () => openCalendarYear(yearSel.value));
       close.addEventListener("click", closePopup);
 
   renderWeekCfg();
@@ -224,57 +249,4 @@ function openCalendarPopup() {
   renderDays();
   updateSummary();
 });
-}
-
-function openYearView(){
-  const year = document.querySelector('#calYearFilter').value;
-  const bd = document.createElement('div');
-  bd.className = 'modal-backdrop';
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.style.maxWidth = '95vw';
-  const header = document.createElement('header');
-  header.innerHTML = `<span class="modal-title">Año ${year}</span><button class="close" type="button">×</button>`;
-  modal.appendChild(header);
-  const cont = document.createElement('div');
-  cont.className = 'year-calendar';
-  for(let m=0;m<12;m++){
-    const table=document.createElement('table');
-    const monthName=new Date(year,m,1).toLocaleString('es',{month:'long'});
-    table.innerHTML=`<thead><tr><th colspan="7">${monthName}</th></tr><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead>`;
-    const tbody=document.createElement('tbody');
-    const first=new Date(year,m,1);
-    let startDay=(first.getDay()+6)%7;
-    let days=new Date(year,m+1,0).getDate();
-    let tr=document.createElement('tr');
-    for(let i=0;i<startDay;i++) tr.appendChild(document.createElement('td'));
-    for(let d=1; d<=days; d++){
-      if((startDay+d-1)%7===0 && d>1){tbody.appendChild(tr);tr=document.createElement('tr');}
-      const td=document.createElement('td');
-      td.textContent=d;
-      const dateStr=`${year}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(calendarDays.find(c=>c.date===dateStr && c.type==='festivo')) td.classList.add('holiday');
-      else if(calendarDays.find(c=>c.date===dateStr && c.type==='vacaciones')) td.classList.add('vacation');
-      else if(calendarDays.find(c=>c.date===dateStr && c.type==='no_laboral')) td.classList.add('nolaboral');
-      tr.appendChild(td);
-    }
-    while(tr.children.length<7) tr.appendChild(document.createElement('td'));
-    tbody.appendChild(tr);
-    table.appendChild(tbody);
-    cont.appendChild(table);
-  }
-  modal.appendChild(cont);
-  const legend = document.createElement('div');
-  legend.className = 'calendar-legend';
-  legend.innerHTML = `
-    <span class="label"><span class="box holiday"></span>Festivos</span>
-    <span class="label"><span class="box vacation"></span>Vacaciones</span>
-    <span class="label"><span class="box nolaboral"></span>No laboral</span>
-  `;
-  modal.appendChild(legend);
-  bd.appendChild(modal);
-  function close(){bd.remove();}
-  header.querySelector('.close').addEventListener('click',close);
-  bd.addEventListener('click',e=>{if(e.target===bd) close();});
-  document.body.appendChild(bd);
 }
