@@ -8,12 +8,20 @@ window.dbReady = (async()=>{
     await new Promise(res=>{s.onload=res;});
   }
 
-  let url=localStorage.getItem('supabaseUrl');
-  if(!url) url=prompt('Supabase URL');
-  let key=localStorage.getItem('supabaseKey');
-  if(!key) key=prompt('Supabase KEY');
-  if(url) localStorage.setItem('supabaseUrl',url);
-  if(key) localStorage.setItem('supabaseKey',key);
+  let env=localStorage.getItem('supabaseEnv') || 'real';
+  let url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
+  let key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
+
+  if(!url || !key){
+    document.addEventListener('DOMContentLoaded',()=>{
+      if(window.openConfigPopup) window.openConfigPopup();
+    });
+    await new Promise(res=>document.addEventListener('configSaved',res,{once:true}));
+    env=localStorage.getItem('supabaseEnv') || 'real';
+    url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
+    key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
+  }
+
   window.supabaseClient=supabase.createClient(url,key);
 
   const camel=str=>str.replace(/_([a-z])/g,(m,g)=>g.toUpperCase());

@@ -47,11 +47,13 @@
     font-weight:600;
     letter-spacing:.5px;
   }
-  .app-subtitle{
-    font-size:.8rem;
-    opacity:.85;
-    margin-top:-2px;
-  }
+.app-subtitle{
+  font-size:.8rem;
+  opacity:.85;
+  margin-top:-2px;
+}
+.env-indicator{margin-left:1rem;display:none;}
+.env-indicator.test{display:inline;color:red;font-weight:700;font-size:2rem;}
   
   /* ===================== LAYOUT ===================== */
   main{
@@ -271,3 +273,4 @@
   border-radius:6px;
 }
 .calendar-week input{margin:0;}
+.hidden{display:none;}
