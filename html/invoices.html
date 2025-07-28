@@ -16,10 +16,10 @@
         <div class="section-header">
             <h2>Listado de facturas</h2>
             <div>
-                <button class="Buttons" id="BtnAddInvoice" type="button">+ Nueva factura</button>
-                <button class="Buttons primary" id="BtnEditInvoice" type="button" disabled>Editar</button>
-                <button class="Buttons" id="BtnDelInvoice" type="button" disabled>Eliminar</button>
-                <button class="Buttons" id="BtnPrintInv" type="button" disabled>Imprimir</button>
+                <button class="Buttons icon-btn" id="BtnAddInvoice" type="button" aria-label="Nueva factura"></button>
+                <button class="Buttons primary icon-btn" id="BtnEditInvoice" type="button" disabled aria-label="Editar"></button>
+                <button class="Buttons icon-btn" id="BtnDelInvoice" type="button" disabled aria-label="Eliminar"></button>
+                <button class="Buttons icon-btn" id="BtnPrintInv" type="button" disabled aria-label="Imprimir"></button>
             </div>
             <label>Año <select id="invoiceYearFilter"></select></label>
         </div>
@@ -75,15 +75,15 @@
                                 <tbody></tbody>
                             </table>
                             <div style="display:flex;gap:.5rem;">
-                                <button type="button" id="BtnAddLine" class="Buttons">+ Añadir línea</button>
-                                <button type="button" id="BtnDelLine" class="Buttons" disabled>- Eliminar línea</button>
-                                <button type="button" id="BtnImportImps" class="Buttons">Traerse imputaciones</button>
+                                <button type="button" id="BtnAddLine" class="Buttons icon-btn" aria-label="Añadir línea"></button>
+                                <button type="button" id="BtnDelLine" class="Buttons icon-btn" disabled aria-label="Eliminar línea"></button>
+                                <button type="button" id="BtnImportImps" class="Buttons icon-btn" aria-label="Traer imputaciones"></button>
                             </div>
                         </div>
                         <footer class="full">
                             <div id="invoiceTotals"></div>
                             <div style="display:flex;gap:.5rem;justify-content:flex-end;">
-                                <button type="button" id="BtnPrintInvoice" class="Buttons">Imprimir</button>
+                                <button type="button" id="BtnPrintInvoice" class="Buttons icon-btn" aria-label="Imprimir"></button>
                                 <button type="submit" class="Buttons primary">Guardar</button>
                             </div>
                         </footer>

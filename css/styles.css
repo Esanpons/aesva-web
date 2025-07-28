@@ -119,6 +119,12 @@ main {
 
 .menu-buttons li {
   margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.menu-buttons li .icon-btn {
+  width: 40px;
 }
 
 .filter-list {
@@ -128,15 +134,22 @@ main {
 }
 
 .filter-list li {
-  padding: .3rem 0;
+  padding: .4rem .65rem;
   cursor: pointer;
   color: var(--primary);
   font-size: .85rem;
+  border-radius: 20px;
+  transition: background var(--transition);
+}
+
+.filter-list li:hover {
+  background: #eef7fb;
 }
 
 .filter-list li.active {
   font-weight: 600;
-  text-decoration: underline;
+  background: var(--accent);
+  color: #fff;
 }
 
 #filterPane input {
@@ -242,6 +255,21 @@ main {
   text-decoration: none;
 }
 
+/* Icon buttons */
+.icon-btn {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 0;
+}
+
+.icon-btn::before {
+  content: var(--icon);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
 .Buttons:hover:not(:disabled) {
   background: #fff;
   color: var(--accent);
@@ -335,6 +363,46 @@ button[id^="BtnEdit"]:hover:not(:disabled) {
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* ===== Icon definitions ===== */
+#btnCustomers { --icon: "👥"; }
+#btnTasks { --icon: "🗒️"; }
+#btnCalendar { --icon: "📅"; }
+#btnCompany { --icon: "🏢"; }
+#btnInvoices { --icon: "🧾"; }
+#btnConfig { --icon: "⚙️"; }
+
+#BtnEntrar { --icon: "▶️"; }
+#BtnSalir { --icon: "⏹️"; }
+#BtnAddImputation { --icon: "➕"; }
+#BtnEditImputation { --icon: "✏️"; }
+#BtnDelImputation { --icon: "🗑️"; }
+#BtnLoadAllImp { --icon: "🔄"; }
+#BtnExportImp { --icon: "📤"; }
+
+#BtnAddTask { --icon: "➕"; }
+#BtnEditTask { --icon: "✏️"; }
+#BtnDupTask { --icon: "📑"; }
+#BtnDelTask { --icon: "🗑️"; }
+
+#BtnAddCustomer { --icon: "➕"; }
+#BtnEditCustomer { --icon: "✏️"; }
+#BtnDelCustomer { --icon: "🗑️"; }
+
+#BtnAddInvoice { --icon: "➕"; }
+#BtnEditInvoice { --icon: "✏️"; }
+#BtnDelInvoice { --icon: "🗑️"; }
+#BtnPrintInv { --icon: "🖨️"; }
+#BtnAddLine { --icon: "➕"; }
+#BtnDelLine { --icon: "🗑️"; }
+#BtnImportImps { --icon: "📥"; }
+#BtnPrintInvoice { --icon: "🖨️"; }
+
+#BtnAddCal { --icon: "➕"; }
+#BtnEditCal { --icon: "✏️"; }
+#BtnDelCal { --icon: "🗑️"; }
+#BtnYearView { --icon: "📅"; }
+#btnCalDelete { --icon: "🗑️"; }
 
 /* ===================== TABLES ===================== */
 .section-header {
