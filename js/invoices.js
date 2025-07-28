@@ -82,9 +82,10 @@ function openInvoicesPopup(){
       }
 
       function updateButtons(){
+        const inv = invoices.find(i=>i.no===selectedNo);
         const has = !!selectedNo;
         btnEdit.disabled = !has;
-        btnDel.disabled = !has;
+        btnDel.disabled = !has || (inv && inv.paid);
         btnPrintList.disabled = !has;
       }
 
@@ -100,7 +101,7 @@ function openInvoicesPopup(){
           const cust = customers.find(c=>c.no===inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
-          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust?cust.name:''}</td><td>${invoiceTotal(inv).toFixed(2)}</td>`;
+          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust?cust.name:''}</td><td>${invoiceTotal(inv).toFixed(2)}</td><td>${inv.paid?'Sí':'No'}</td>`;
           if(inv.no===selectedNo) tr.classList.add('selected');
           tr.addEventListener('click',()=>{ selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick',()=>{ const invc=invoices.find(i=>i.no===inv.no); if(invc) openInvoiceModal(invc,no=>{ selectedNo=no; render(); }); });
