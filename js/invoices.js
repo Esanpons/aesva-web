@@ -319,28 +319,30 @@ function openInvoiceModal(invoice=null,onSave){
     const data = collectData();
     if(!data) return;
     try{
+      const baseFields = {
+        date: data.date,
+        customerNo: data.customerNo,
+        priceHour: data.priceHour,
+        vat: data.vat,
+        irpf: data.irpf,
+        arrayLinesInvoicePrint: data.arrayLinesInvoicePrint
+      };
+
+      async function attempt(saveFn){
+        try{
+          await saveFn({...baseFields, invoicePayment: data.paid});
+        }catch(err){
+          if(err.code==='PGRST204' && /invoice_payment/.test(err.message||'')){
+            await saveFn({...baseFields, paid: data.paid});
+          }else throw err;
+        }
+      }
+
       if(invoice){
-        await db.update('invoices', {no:invoice.no}, {
-          date: data.date,
-          customerNo: data.customerNo,
-          priceHour: data.priceHour,
-          vat: data.vat,
-          irpf: data.irpf,
-          arrayLinesInvoicePrint: data.arrayLinesInvoicePrint,
-          invoicePayment: data.paid
-        });
+        await attempt(fields=>db.update('invoices',{no:invoice.no},fields));
         await db.delete('invoice_lines',{invoice_no:invoice.no});
       }else{
-        await db.insert('invoices', {
-          no: data.no,
-          date: data.date,
-          customerNo: data.customerNo,
-          priceHour: data.priceHour,
-          vat: data.vat,
-          irpf: data.irpf,
-          arrayLinesInvoicePrint: data.arrayLinesInvoicePrint,
-          invoicePayment: data.paid
-        });
+        await attempt(fields=>db.insert('invoices',{no:data.no,...fields}));
         company.invoiceNumbering = incrementInvoiceNumber(data.no);
         if(company.id)
           await db.update('company',{id:company.id},{invoiceNumbering:company.invoiceNumbering});
