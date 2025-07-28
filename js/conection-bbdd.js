@@ -8,16 +8,18 @@ window.dbReady = (async()=>{
     await new Promise(res=>{s.onload=res;});
   }
 
-  let url=localStorage.getItem('supabaseUrl');
-  let key=localStorage.getItem('supabaseKey');
+  let env=localStorage.getItem('supabaseEnv') || 'real';
+  let url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
+  let key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
 
   if(!url || !key){
     document.addEventListener('DOMContentLoaded',()=>{
       if(window.openConfigPopup) window.openConfigPopup();
     });
     await new Promise(res=>document.addEventListener('configSaved',res,{once:true}));
-    url=localStorage.getItem('supabaseUrl');
-    key=localStorage.getItem('supabaseKey');
+    env=localStorage.getItem('supabaseEnv') || 'real';
+    url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
+    key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
   }
 
   window.supabaseClient=supabase.createClient(url,key);

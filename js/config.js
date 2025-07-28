@@ -19,10 +19,17 @@ function openConfigPopup(){
       currentConfigBackdrop = backdrop;
 
       const form = backdrop.querySelector('#configForm');
-      const urlInput = form.elements['supabaseUrl'];
-      const keyInput = form.elements['supabaseKey'];
-      urlInput.value = localStorage.getItem('supabaseUrl') || '';
-      keyInput.value = localStorage.getItem('supabaseKey') || '';
+      const envSel   = form.elements['environment'];
+      const urlReal  = form.elements['supabaseUrlReal'];
+      const keyReal  = form.elements['supabaseKeyReal'];
+      const urlTest  = form.elements['supabaseUrlTest'];
+      const keyTest  = form.elements['supabaseKeyTest'];
+
+      envSel.value  = localStorage.getItem('supabaseEnv') || 'real';
+      urlReal.value = localStorage.getItem('supabaseUrlReal') || '';
+      keyReal.value = localStorage.getItem('supabaseKeyReal') || '';
+      urlTest.value = localStorage.getItem('supabaseUrlTest') || '';
+      keyTest.value = localStorage.getItem('supabaseKeyTest') || '';
 
       function closePopup(){
         backdrop.remove();
@@ -35,16 +42,29 @@ function openConfigPopup(){
 
       form.addEventListener('submit',e=>{
         e.preventDefault();
-        const url = urlInput.value.trim();
-        const key = keyInput.value.trim();
-        if(url && key){
-          localStorage.setItem('supabaseUrl', url);
-          localStorage.setItem('supabaseKey', key);
-          document.dispatchEvent(new Event('configSaved'));
-          closePopup();
-        }else{
-          alert('Debe introducir ambos valores');
+        const env  = envSel.value;
+        const urlR = urlReal.value.trim();
+        const keyR = keyReal.value.trim();
+        const urlT = urlTest.value.trim();
+        const keyT = keyTest.value.trim();
+
+        if(env==='real' && (!urlR || !keyR)){
+          alert('Debe introducir URL y KEY de Real');
+          return;
         }
+        if(env==='test' && (!urlT || !keyT)){
+          alert('Debe introducir URL y KEY de Test');
+          return;
+        }
+
+        localStorage.setItem('supabaseEnv', env);
+        if(urlR) localStorage.setItem('supabaseUrlReal', urlR);
+        if(keyR) localStorage.setItem('supabaseKeyReal', keyR);
+        if(urlT) localStorage.setItem('supabaseUrlTest', urlT);
+        if(keyT) localStorage.setItem('supabaseKeyTest', keyT);
+
+        document.dispatchEvent(new Event('configSaved'));
+        closePopup();
       });
     });
 }

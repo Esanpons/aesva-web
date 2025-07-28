@@ -11,11 +11,23 @@
             <button class="close" type="button">&times;</button>
         </header>
         <form id="configForm">
-            <label>Supabase URL
-                <input type="text" name="supabaseUrl" required />
+            <label>Entorno
+                <select name="environment">
+                    <option value="real">Real</option>
+                    <option value="test">Test</option>
+                </select>
             </label>
-            <label class="full">Supabase KEY
-                <input type="text" name="supabaseKey" required />
+            <label>URL Supabase Real
+                <input type="text" name="supabaseUrlReal" required />
+            </label>
+            <label class="full">KEY Supabase Real
+                <input type="text" name="supabaseKeyReal" required />
+            </label>
+            <label>URL Supabase Test
+                <input type="text" name="supabaseUrlTest" />
+            </label>
+            <label class="full">KEY Supabase Test
+                <input type="text" name="supabaseKeyTest" />
             </label>
             <footer class="full">
                 <button type="submit" class="Buttons primary">Guardar</button>

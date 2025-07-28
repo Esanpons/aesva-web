@@ -357,6 +357,10 @@ function rowMatchesDate(filter,date){
   if(filter==="today") return sameDay(date,now);
   if(filter==="week"){const start=new Date(now);start.setDate(now.getDate()-now.getDay());start.setHours(0,0,0,0);return date>=start&&date<=now;}
   if(filter==="month") return date.getMonth()===now.getMonth()&&date.getFullYear()===now.getFullYear();
+  if(filter==="prevMonth"){
+    const prev=new Date(now.getFullYear(),now.getMonth()-1,1);
+    return date.getMonth()===prev.getMonth() && date.getFullYear()===prev.getFullYear();
+  }
   return true;
 }
 
