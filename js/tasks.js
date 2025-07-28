@@ -154,6 +154,7 @@ function openTaskModal(task = null, onSave) {
     data.noCharge = form.elements["noCharge"].checked;
     data.completed = form.elements["completed"].checked;
     data.id = Number(form.elements["id"].value);
+    data.taskDescription = await correctFieldIfNeeded('tasks', 'taskDescription', task ? task.taskDescription : '', data.taskDescription);
     let savedId;
     try {
       if (task) {

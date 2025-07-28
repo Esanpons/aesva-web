@@ -439,6 +439,7 @@ function openImputationModal(record = null) {
     e.preventDefault();
     if (!validateTaskInput(taskSel)) return;
     const data = sanitizeStrings(Object.fromEntries(new FormData(form).entries()));
+    data.comments = await correctFieldIfNeeded('imputations', 'comments', record ? record.comments : '', data.comments);
     const inDate = parseDT(data.date, data.inTime);
     const outTime = data.outTime;
     const taskId = taskSel.dataset.id || "";

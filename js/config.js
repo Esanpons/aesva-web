@@ -1,5 +1,6 @@
 /*************** Configuración Supabase ****************/
 window.supabaseCreds = { url: '', key: '' };
+window.aiConfig = { apiKey: '', model: '', languages: [] };
 let currentConfigBackdrop = null;
 
 function loadSupabaseCreds() {
@@ -9,6 +10,13 @@ function loadSupabaseCreds() {
   window.supabaseCreds.url = url;
   window.supabaseCreds.key = key;
   document.dispatchEvent(new Event('credsLoaded'));
+}
+
+function loadAiConfig() {
+  aiConfig.apiKey = localStorage.getItem('googleApiKey') || '';
+  aiConfig.model = localStorage.getItem('googleModel') || '';
+  const langs = localStorage.getItem('spellLangs') || 'es,ca';
+  aiConfig.languages = langs.split(',').map(l => l.trim()).filter(Boolean);
 }
 
 function openConfigPopup() {
@@ -36,6 +44,9 @@ function openConfigPopup() {
       const keyTest = form.elements['supabaseKeyTest'];
       const realBlock = form.querySelector('#realFields');
       const testBlock = form.querySelector('#testFields');
+      const googleKey = form.elements['googleApiKey'];
+      const googleModel = form.elements['googleModel'];
+      const spellLangs = form.elements['spellLangs'];
 
       function updateFields() {
         const env = envSel.value;
@@ -60,6 +71,10 @@ function openConfigPopup() {
       updateFields();
       envSel.addEventListener('change', updateFields);
 
+      googleKey.value = localStorage.getItem('googleApiKey') || '';
+      googleModel.value = localStorage.getItem('googleModel') || '';
+      spellLangs.value = localStorage.getItem('spellLangs') || 'es,ca';
+
       function closePopup() {
         backdrop.remove();
         currentConfigBackdrop = null;
@@ -77,6 +92,9 @@ function openConfigPopup() {
         const keyR = keyReal.value.trim();
         const urlT = urlTest.value.trim();
         const keyT = keyTest.value.trim();
+        const gKey = googleKey.value.trim();
+        const gModel = googleModel.value.trim();
+        const langsVal = spellLangs.value.trim();
 
         if (env === 'real' && (!urlR || !keyR)) {
           alert('Debe introducir URL y KEY de Real');
@@ -93,7 +111,12 @@ function openConfigPopup() {
         if (urlT) localStorage.setItem('supabaseUrlTest', urlT);
         if (keyT) localStorage.setItem('supabaseKeyTest', keyT);
 
+        if (gKey) localStorage.setItem('googleApiKey', gKey); else localStorage.removeItem('googleApiKey');
+        if (gModel) localStorage.setItem('googleModel', gModel); else localStorage.removeItem('googleModel');
+        if (langsVal) localStorage.setItem('spellLangs', langsVal); else localStorage.removeItem('spellLangs');
+
         loadSupabaseCreds();
+        loadAiConfig();
         document.dispatchEvent(new Event('configSaved'));
         closePopup();
       });
@@ -117,6 +140,6 @@ function updateEnvLabel() {
     label.classList.remove('test');
   }
 }
-document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); updateEnvLabel(); });
-document.addEventListener('configSaved', () => { loadSupabaseCreds(); updateEnvLabel(); });
+document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); updateEnvLabel(); });
+document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); updateEnvLabel(); });
 window.updateEnvLabel = updateEnvLabel;
