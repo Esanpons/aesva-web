@@ -414,62 +414,55 @@ async function closeLastOpenImputation(outDate) {
 }
 
 function openImputationModal(record = null) {
-  const tmpl = document.getElementById("imputationModalTmpl");
+  const tmpl = document.getElementById('imputationModalTmpl');
   const clone = tmpl.content.cloneNode(true);
-  const backdrop = clone.querySelector(".modal-backdrop");
-  const form = clone.querySelector("#imputationForm");
-  const taskSel = form.elements["taskId"];
-  const commentsInput = form.elements["comments"];
-  const noFeeChk = form.elements["noFee"];
+  const dialog = clone.querySelector('md-dialog');
+  const form = clone.querySelector('#imputationForm');
+  const taskSel = form.elements['taskId'];
+  const commentsInput = form.elements['comments'];
+  const noFeeChk = form.elements['noFee'];
   const today = new Date();
 
   if (record) {
-    backdrop.querySelector(".modal-title").textContent = "Editar imputación";
-    form.elements["id"].value = record.id;
-    form.elements["date"].value = formatInputDate(record.date);
-    form.elements["inTime"].value = formatInputTime(record.inDate);
-    form.elements["outTime"].value = record.outDate ? formatInputTime(record.outDate) : "";
+    dialog.querySelector('.modal-title').textContent = 'Editar imputación';
+    form.elements['id'].value = record.id;
+    form.elements['date'].value = formatInputDate(record.date);
+    form.elements['inTime'].value = formatInputTime(record.inDate);
+    form.elements['outTime'].value = record.outDate ? formatInputTime(record.outDate) : '';
     const tEdit = tasks.find(t => t.id == record.taskId);
     if (tEdit) {
       taskSel.value = tEdit.clientTaskNo || tEdit.subject;
       taskSel.dataset.id = record.taskId;
     }
     taskSel.dataset.prev = taskSel.value;
-    commentsInput.value = record.comments || "";
+    commentsInput.value = record.comments || '';
     noFeeChk.checked = !!record.noFee;
   } else {
-    form.elements["date"].value = formatInputDate(today);
-    form.elements["inTime"].value = "09:00";
-    form.elements["outTime"].value = "17:00";
-    taskSel.dataset.id = "";
+    form.elements['date'].value = formatInputDate(today);
+    form.elements['inTime'].value = '09:00';
+    form.elements['outTime'].value = '17:00';
+    taskSel.dataset.id = '';
     taskSel.dataset.prev = '';
   }
 
-  taskSel.addEventListener("input", () => {
+  taskSel.addEventListener('input', () => {
     taskSel.dataset.id = selectedTaskIdFromInput(taskSel);
     const t = tasks.find(tt => tt.id == taskSel.dataset.id);
     if (t) {
-      if (!commentsInput.value.trim()) { commentsInput.value = t.taskDescription || ""; }
-      if (!record) { noFeeChk.checked = noFeeChk.checked || !!t.noCharge; }
+      if (!commentsInput.value.trim()) commentsInput.value = t.taskDescription || '';
+      if (!record) noFeeChk.checked = noFeeChk.checked || !!t.noCharge;
     }
   });
   taskSel.addEventListener('focus', () => { taskSel.dataset.prev = taskSel.value; });
   taskSel.addEventListener('blur', () => { validateTaskInput(taskSel); });
 
-  function closeModal() {
-    backdrop.remove();
-    document.removeEventListener('keydown', handleEsc, true);
-  }
-  function handleEsc(e) { if (e.key === 'Escape') { e.stopPropagation(); closeModal(); } }
-  document.addEventListener('keydown', handleEsc, true);
-  backdrop.querySelector(".close").addEventListener("click", closeModal);
-  form.addEventListener("submit", async e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     if (!validateTaskInput(taskSel)) return;
     const data = sanitizeStrings(Object.fromEntries(new FormData(form).entries()));
     const inDate = parseDT(data.date, data.inTime);
     const outTime = data.outTime;
-    const taskId = taskSel.dataset.id || "";
+    const taskId = taskSel.dataset.id || '';
     try {
       if (record) {
         await updateImputation(
@@ -488,7 +481,7 @@ function openImputationModal(record = null) {
           await createOpenImputation(inDate, taskId, data.comments, noFeeChk.checked);
         }
       }
-      backdrop.remove();
+      dialog.open = false;
       updateTimer();
       showSnackbar('Imputación guardada');
     } catch (err) {
@@ -496,7 +489,13 @@ function openImputationModal(record = null) {
       alert('Error al guardar la imputación');
     }
   });
-  document.body.appendChild(clone);
+
+  dialog.addEventListener('closed', () => {
+    dialog.remove();
+  });
+
+  document.body.appendChild(dialog);
+  dialog.open = true;
 }
 
 async function updateImputation(id, inDate, outDate, taskId, comments, noFeeChecked) {
