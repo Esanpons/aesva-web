@@ -17,6 +17,16 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function callGoogleAi(prompt, retries = 3) {
   if (!aiConfig.apiKey || !aiConfig.model) return null;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(aiConfig.model)}:generateContent?key=${encodeURIComponent(aiConfig.apiKey)}`;
+
+  function parseRetryDelay(info, hdr) {
+    if (info && typeof info === 'string' && /s$/.test(info)) {
+      const ms = parseFloat(info.replace('s', '')) * 1000;
+      if (!Number.isNaN(ms)) return ms;
+    }
+    const h = Number(hdr);
+    return !Number.isNaN(h) && h > 0 ? h * 1000 : null;
+  }
+
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, {
@@ -27,18 +37,29 @@ async function callGoogleAi(prompt, retries = 3) {
           generationConfig: { temperature: 0 }
         })
       });
+
       if (res.status === 429) {
-        if (i < retries - 1) {
-          const wait = 2000 * (i + 1);
-          console.warn('Google AI rate limit, retrying in', wait, 'ms');
-          await sleep(wait);
+        let delay = null;
+        try {
+          const data = await res.clone().json();
+          const detail = data?.error?.details?.find(d => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo');
+          if (detail?.retryDelay) delay = parseRetryDelay(detail.retryDelay, res.headers.get('Retry-After'));
+        } catch {}
+        if (!delay) delay = parseRetryDelay(null, res.headers.get('Retry-After')) || 0;
+        if (delay && i < retries - 1) {
+          console.warn('Google AI rate limit, retrying in', delay, 'ms');
+          await sleep(delay);
           continue;
         }
+        console.error('Google AI error', res.status, await res.text());
+        return null;
       }
+
       if (!res.ok) {
         console.error('Google AI error', res.status, await res.text());
         return null;
       }
+
       const json = await res.json();
       const cand = json.candidates && json.candidates[0];
       if (cand && cand.content && cand.content.parts) {
