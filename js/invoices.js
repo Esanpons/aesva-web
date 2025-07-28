@@ -272,12 +272,12 @@ function openInvoiceModal(invoice=null,onSave){
     if(!dateVal || !cust) return;
     const d=new Date(dateVal);
     const total = imputations.filter(imp=>{
-      if(!imp.outDate) return false;
-      const impDate = imp.date instanceof Date? imp.date:new Date(imp.date);
-      if(impDate.getFullYear()!==d.getFullYear() || impDate.getMonth()!==d.getMonth()) return false;
-      const t=tasks.find(t=>t.id===imp.taskId);
-      return t && t.customerNo===cust;
-    }).reduce((s,imp)=>s+imp.totalDecimal,0);
+      if(!imp.outDate || imp.noFee) return false;
+      const impDate = imp.date instanceof Date ? imp.date : new Date(imp.date);
+      if(impDate.getFullYear() !== d.getFullYear() || impDate.getMonth() !== d.getMonth()) return false;
+      const t = tasks.find(t=>t.id===imp.taskId);
+      return t && t.customerNo === cust;
+    }).reduce((s,imp)=> s + imp.totalDecimal, 0);
     lines.push({description:'Horas realizadas en el período', qty: round2(total)});
     selectedLine=lines.length-1;
     renderLines();
