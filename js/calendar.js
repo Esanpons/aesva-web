@@ -264,6 +264,14 @@ function openYearView(){
     cont.appendChild(table);
   }
   modal.appendChild(cont);
+  const legend = document.createElement('div');
+  legend.className = 'calendar-legend';
+  legend.innerHTML = `
+    <span class="label"><span class="box holiday"></span>Festivos</span>
+    <span class="label"><span class="box vacation"></span>Vacaciones</span>
+    <span class="label"><span class="box nolaboral"></span>No laboral</span>
+  `;
+  modal.appendChild(legend);
   bd.appendChild(modal);
   function close(){bd.remove();}
   header.querySelector('.close').addEventListener('click',close);
