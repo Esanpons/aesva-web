@@ -50,6 +50,7 @@ function openConfigPopup(){
         backdrop.remove();
         currentConfigBackdrop=null;
         document.removeEventListener('keydown',handleEsc);
+        location.reload();
       }
       function handleEsc(e){ if(e.key==='Escape') closePopup(); }
       document.addEventListener('keydown',handleEsc);
