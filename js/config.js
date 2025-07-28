@@ -1,5 +1,15 @@
 /*************** Configuración Supabase ****************/
+window.supabaseCreds = {url:'',key:''};
 let currentConfigBackdrop = null;
+
+function loadSupabaseCreds(){
+  const env = localStorage.getItem('supabaseEnv') || 'real';
+  const url = localStorage.getItem(env==='real'?'supabaseUrlReal':'supabaseUrlTest') || '';
+  const key = localStorage.getItem(env==='real'?'supabaseKeyReal':'supabaseKeyTest') || '';
+  window.supabaseCreds.url = url;
+  window.supabaseCreds.key = key;
+  document.dispatchEvent(new Event('credsLoaded'));
+}
 
 function openConfigPopup(){
   if(currentConfigBackdrop){ currentConfigBackdrop.remove(); currentConfigBackdrop=null; }
@@ -32,11 +42,15 @@ function openConfigPopup(){
         if(env==='real'){
           realBlock.classList.remove('hidden');
           testBlock.classList.add('hidden');
+          urlReal.required = keyReal.required = true;
+          urlTest.required = keyTest.required = false;
           urlReal.value = localStorage.getItem('supabaseUrlReal') || '';
           keyReal.value = localStorage.getItem('supabaseKeyReal') || '';
         }else{
           realBlock.classList.add('hidden');
           testBlock.classList.remove('hidden');
+          urlTest.required = keyTest.required = true;
+          urlReal.required = keyReal.required = false;
           urlTest.value = localStorage.getItem('supabaseUrlTest') || '';
           keyTest.value = localStorage.getItem('supabaseKeyTest') || '';
         }
@@ -79,6 +93,7 @@ function openConfigPopup(){
         if(urlT) localStorage.setItem('supabaseUrlTest', urlT);
         if(keyT) localStorage.setItem('supabaseKeyTest', keyT);
 
+        loadSupabaseCreds();
         document.dispatchEvent(new Event('configSaved'));
         closePopup();
       });
@@ -102,6 +117,6 @@ function updateEnvLabel(){
     label.classList.remove('test');
   }
 }
-document.addEventListener('DOMContentLoaded',updateEnvLabel);
-document.addEventListener('configSaved',updateEnvLabel);
+document.addEventListener('DOMContentLoaded',()=>{loadSupabaseCreds();updateEnvLabel();});
+document.addEventListener('configSaved',()=>{loadSupabaseCreds();updateEnvLabel();});
 window.updateEnvLabel=updateEnvLabel;

@@ -8,21 +8,22 @@ window.dbReady = (async()=>{
     await new Promise(res=>{s.onload=res;});
   }
 
-  let env=localStorage.getItem('supabaseEnv') || 'real';
-  let url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
-  let key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
+  if(!window.supabaseCreds) window.supabaseCreds = {url:'',key:''};
 
-  if(!url || !key){
+  // Wait for credentials loaded from config.js
+  await new Promise(res=>{
+    if(window.supabaseCreds.url && window.supabaseCreds.key) return res();
+    document.addEventListener('credsLoaded',res,{once:true});
+  });
+
+  if(!supabaseCreds.url || !supabaseCreds.key){
     document.addEventListener('DOMContentLoaded',()=>{
       if(window.openConfigPopup) window.openConfigPopup();
     });
     await new Promise(res=>document.addEventListener('configSaved',res,{once:true}));
-    env=localStorage.getItem('supabaseEnv') || 'real';
-    url=localStorage.getItem(env==='real'? 'supabaseUrlReal':'supabaseUrlTest');
-    key=localStorage.getItem(env==='real'? 'supabaseKeyReal':'supabaseKeyTest');
   }
 
-  window.supabaseClient=supabase.createClient(url,key);
+  window.supabaseClient=supabase.createClient(supabaseCreds.url,supabaseCreds.key);
 
   const camel=str=>str.replace(/_([a-z])/g,(m,g)=>g.toUpperCase());
   const decamel=str=>str.replace(/([A-Z])/g,m=>'_'+m.toLowerCase());

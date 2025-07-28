@@ -1,20 +1,9 @@
 /*************** Datos compartidos ****************/
-let customers = [];
-
-let tasks = [];
-
-let invoices = [];
-let imputations = [];
-
-let taskSeq = 1;
-let imputationSeq = 1;
-
-/*************** Empresa (un único registro) ****************/
-let company = {};
+// Las variables globales (customers, tasks, invoices...) se definen en
+// data-loader.js para centralizar la carga desde la base de datos.
 
 /*************** Calendario y semana ****************/
-let weekConfig = Array(7).fill(false);
-let calendarDays = [];
+// weekConfig y calendarDays también provienen de data-loader.js
 function calendarLookup(d){const k=d.toISOString().substring(0,10);return calendarDays.find(c=>c.date===k)||null;}
 function isCalendarHoliday(d){return calendarLookup(d)?.type==="festivo";}
 function isCalendarVacation(d){return calendarLookup(d)?.type==="vacaciones";}
@@ -23,38 +12,7 @@ function isWeekend(d){return !weekConfig[d.getDay()];}
 async function loadFromDb(startDate=null,endDate=null){
   btnAddImp.disabled = true;
   btnEntrar.disabled = true;
-  customers = await db.select('customers');
-  tasks = await db.select('tasks');
-  const invs = await db.select('invoices');
-  const lines = await db.select('invoice_lines');
-  invoices = invs.map(inv=>({
-    ...inv,
-    lines: lines.filter(l=>l.invoiceNo===inv.no)
-                  .sort((a,b)=>a.lineNo-b.lineNo)
-                  .map(l=>({description:l.description, qty:l.qty}))
-  }));
-  let imps;
-  if(startDate || endDate){
-    const s = startDate ? formatInputDate(startDate) : undefined;
-    const e = endDate ? formatInputDate(endDate) : undefined;
-    imps = await db.selectRange('imputations','date',s,e);
-  }else{
-    imps = await db.select('imputations');
-  }
-  imputations = imps;
-  imputations.forEach(r=>{
-    r.date=new Date(r.date); r.inDate=new Date(r.inDate); r.outDate=r.outDate?new Date(r.outDate):null;
-  });
-  const wk = await db.select('week_config');
-  weekConfig = Array(7).fill(false);
-  wk.forEach(w=>{weekConfig[w.weekday]=w.working;});
-  calendarDays = (await db.select('calendar_days')).map(d=>({date:d.date,type:d.type,desc:d.description||''}));
-  const comp = await db.select('company');
-  company = comp[0] || {};
-  if(company.invoiceNextNumber && !company.invoiceNumbering)
-    company.invoiceNumbering = company.invoiceNextNumber;
-  taskSeq = Math.max(0,...tasks.map(t=>t.id))+1;
-  imputationSeq = Math.max(0,...imputations.map(i=>i.id))+1;
+  await loadAllData(startDate,endDate);
   resumeOpenSession();
   renderImputations();
   loadTasksInSelects();
@@ -86,6 +44,10 @@ function selectedTaskIdFromInput(input){
 }
 function validateTaskInput(input){
   if(!input.dataset.id){
+    if(input.value.trim() === ''){
+      input.dataset.id = '';
+      return true; // allow empty task
+    }
     alert('Tarea no válida');
     input.value = input.dataset.prev || '';
     input.dataset.id = selectedTaskIdFromInput(input);
@@ -216,14 +178,7 @@ btnExportImp.addEventListener("click",exportImputationsCsv);
 function renderImputations(){
   imputationsTableBody.innerHTML="";
   const filter=activeFilter(),txt=document.getElementById("searchFilter").value.toLowerCase();
-  const list = imputations
-    .filter(r=>rowMatchesDate(filter,r.date))
-    .filter(r=>{
-      if(!txt) return true;
-      const t=tasks.find(t=>t.id==r.taskId);
-      return (t && ((t.subject||'').toLowerCase().includes(txt) || (t.clientTaskNo||'').toLowerCase().includes(txt))) || (r.comments && r.comments.toLowerCase().includes(txt));
-    })
-    .sort((a,b)=>b.inDate - a.inDate);
+  const list = filterImputations().sort((a,b)=>b.inDate - a.inDate);
   if(selectedImputationId===null && list.length) selectedImputationId=list[0].id;
   list.forEach(rec=>{
       const task=tasks.find(t=>t.id==rec.taskId);
@@ -246,7 +201,7 @@ function renderImputations(){
       tr.addEventListener("dblclick",()=>{ openImputationModal(rec); });
       imputationsTableBody.appendChild(tr);
     });
-  updateTotalsBar();
+  updateTotalsBar(list);
   updateImputationButtons();
 }
 
@@ -255,15 +210,24 @@ function renderImputations(){
  * - Tiempo trabajado / Decimal: imputaciones facturables (!noFee), incluidas festivos/vacaciones.
  * - Horas mínimas / laborales: sólo días con imputación facturable y no festivo/vacaciones.
  */
-function updateTotalsBar(){
+function filterImputations(){
   const filter=activeFilter(),txt=document.getElementById("searchFilter").value.toLowerCase();
-  const filtered=imputations
+  return imputations
     .filter(r=>rowMatchesDate(filter,r.date))
     .filter(r=>{
       if(!txt) return true;
       const t=tasks.find(t=>t.id==r.taskId);
-      return (t && t.subject.toLowerCase().includes(txt)) || (r.comments && r.comments.toLowerCase().includes(txt));
+      return (
+        t && (
+          (t.subject||"").toLowerCase().includes(txt) ||
+          (t.clientTaskNo||"").toLowerCase().includes(txt)
+        )
+      ) || (r.comments && r.comments.toLowerCase().includes(txt));
     });
+}
+
+function updateTotalsBar(list=null){
+  const filtered=list||filterImputations();
 
   let totalMs=0,totalDec=0,totalMin=0;
   const dateMap=new Map(); // dateKey -> {billable,min,isHoliday,isVacation}
