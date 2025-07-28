@@ -4,7 +4,12 @@ window.aiConfig = window.aiConfig || { apiKey: '', model: '', languages: [] };
 function buildSpellPrompt(text) {
   const langs = aiConfig.languages.join(' y ');
   const langPart = langs ? ' en ' + langs : '';
-  return `Corrige las faltas de ortografía${langPart} y devuelve solo el texto corregido:\n${text}`;
+  return (
+    `Corrige únicamente las faltas de ortografía` +
+    `${langPart} en el texto siguiente manteniendo todas las palabras y su orden.` +
+    ` Devuelve solo el texto completo corregido sin añadir comentarios.` +
+    `\n"""${text}"""`
+  );
 }
 
 async function callGoogleAi(prompt) {
@@ -14,7 +19,10 @@ async function callGoogleAi(prompt) {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0 }
+      })
     });
     const json = await res.json();
     const cand = json.candidates && json.candidates[0];
