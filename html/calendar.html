@@ -21,6 +21,7 @@
                 <button class="Buttons" id="BtnAddCal" type="button">+ Nuevo día</button>
                 <button class="Buttons primary" id="BtnEditCal" type="button" disabled>Editar</button>
                 <button class="Buttons" id="BtnDelCal" type="button" disabled>Eliminar</button>
+                <button class="Buttons" id="BtnYearView" type="button">Ver año</button>
             </div>
             <label>Año <select id="calYearFilter"></select></label>
             <label>Tipo
@@ -28,6 +29,7 @@
                     <option value="all">Todos</option>
                     <option value="festivo">Festivos</option>
                     <option value="vacaciones">Vacaciones</option>
+                    <option value="no_laboral">No laboral</option>
                 </select>
             </label>
         </div>
@@ -42,6 +44,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        <div id="calendarSummary"></div>
 
         <template id="calModalTmpl">
             <div class="modal-backdrop">
@@ -54,6 +57,7 @@
                             <select name="type" required>
                                 <option value="festivo">Festivo</option>
                                 <option value="vacaciones">Vacaciones</option>
+                                <option value="no_laboral">No laboral</option>
                             </select>
                         </label>
                         <label class="full">Descripción <input type="text" name="desc"></label>

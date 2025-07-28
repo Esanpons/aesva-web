@@ -26,9 +26,11 @@ function openCalendarPopup() {
       const btnAdd = calBackdrop.querySelector("#BtnAddCal");
       const btnEdit = calBackdrop.querySelector("#BtnEditCal");
       const btnDel = calBackdrop.querySelector("#BtnDelCal");
+      const btnYear = calBackdrop.querySelector("#BtnYearView");
       const weekDiv = calBackdrop.querySelector("#weekCfg");
       const yearSel = calBackdrop.querySelector("#calYearFilter");
       const typeSel = calBackdrop.querySelector("#calTypeFilter");
+      const summaryDiv = calBackdrop.querySelector("#calendarSummary");
       const close = calBackdrop.querySelector(".close");
 
       function closePopup() {
@@ -110,6 +112,27 @@ function openCalendarPopup() {
           });
         btnEdit.disabled = !selectedDate;
         btnDel.disabled = !selectedDate;
+        updateSummary();
+      }
+
+      function updateSummary(){
+        if(!summaryDiv) return;
+        const year = yearSel.value;
+        const vac = calendarDays.filter(d=>d.type==='vacaciones' && d.date.startsWith(year)).length;
+        const fest = calendarDays.filter(d=>d.type==='festivo' && d.date.startsWith(year)).length;
+        const nolab = calendarDays.filter(d=>d.type==='no_laboral' && d.date.startsWith(year)).length;
+        let working=0;
+        for(let d=new Date(year,0,1); d.getFullYear()==year; d.setDate(d.getDate()+1)){
+          if(weekConfig[d.getDay()]) working++;
+        }
+        const labor = working - vac - fest - nolab;
+        const remain = (company.totalVacationDays||0) - vac;
+        summaryDiv.innerHTML=`
+          <div><span>Vacaciones</span><strong>${vac}</strong></div>
+          <div><span>Festivos</span><strong>${fest}</strong></div>
+          <div><span>No laborales</span><strong>${nolab}</strong></div>
+          <div><span>Laborables</span><strong>${labor}</strong></div>
+          <div><span>Vacaciones restantes</span><strong>${remain}</strong></div>`;
       }
 
       function openCalModal(rec = null) {
@@ -160,6 +183,7 @@ function openCalendarPopup() {
             selectedDate = data.date;
             renderDays();
             recalcCalendarFlags();
+            updateSummary();
           } catch (err) {
             console.error(err);
             alert("Error al guardar el día");
@@ -181,18 +205,68 @@ function openCalendarPopup() {
             selectedDate = null;
             renderDays();
             recalcCalendarFlags();
+            updateSummary();
           } catch (err) {
             console.error(err);
             alert("Error al eliminar el día");
           }
         }
       });
-      yearSel.addEventListener("change", renderDays);
-      typeSel.addEventListener("change", renderDays);
+      yearSel.addEventListener("change", () => { renderDays(); });
+      yearSel.addEventListener("change", updateSummary);
+      typeSel.addEventListener("change", () => { renderDays(); });
+      typeSel.addEventListener("change", updateSummary);
+      if(btnYear) btnYear.addEventListener("click", openYearView);
       close.addEventListener("click", closePopup);
 
-      renderWeekCfg();
-      renderYearOptions();
-      renderDays();
-    });
+  renderWeekCfg();
+  renderYearOptions();
+  renderDays();
+  updateSummary();
+});
+}
+
+function openYearView(){
+  const year = document.querySelector('#calYearFilter').value;
+  const bd = document.createElement('div');
+  bd.className = 'modal-backdrop';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.maxWidth = '95vw';
+  const header = document.createElement('header');
+  header.innerHTML = `<span class="modal-title">Año ${year}</span><button class="close" type="button">×</button>`;
+  modal.appendChild(header);
+  const cont = document.createElement('div');
+  cont.className = 'year-calendar';
+  for(let m=0;m<12;m++){
+    const table=document.createElement('table');
+    const monthName=new Date(year,m,1).toLocaleString('es',{month:'long'});
+    table.innerHTML=`<thead><tr><th colspan="7">${monthName}</th></tr><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead>`;
+    const tbody=document.createElement('tbody');
+    const first=new Date(year,m,1);
+    let startDay=(first.getDay()+6)%7;
+    let days=new Date(year,m+1,0).getDate();
+    let tr=document.createElement('tr');
+    for(let i=0;i<startDay;i++) tr.appendChild(document.createElement('td'));
+    for(let d=1; d<=days; d++){
+      if((startDay+d-1)%7===0 && d>1){tbody.appendChild(tr);tr=document.createElement('tr');}
+      const td=document.createElement('td');
+      td.textContent=d;
+      const dateStr=`${year}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if(calendarDays.find(c=>c.date===dateStr && c.type==='festivo')) td.classList.add('holiday');
+      else if(calendarDays.find(c=>c.date===dateStr && c.type==='vacaciones')) td.classList.add('vacation');
+      else if(calendarDays.find(c=>c.date===dateStr && c.type==='no_laboral')) td.classList.add('nolaboral');
+      tr.appendChild(td);
+    }
+    while(tr.children.length<7) tr.appendChild(document.createElement('td'));
+    tbody.appendChild(tr);
+    table.appendChild(tbody);
+    cont.appendChild(table);
+  }
+  modal.appendChild(cont);
+  bd.appendChild(modal);
+  function close(){bd.remove();}
+  header.querySelector('.close').addEventListener('click',close);
+  bd.addEventListener('click',e=>{if(e.target===bd) close();});
+  document.body.appendChild(bd);
 }
