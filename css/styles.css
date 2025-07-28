@@ -168,6 +168,9 @@
   #BtnLoadAllImp:hover:not(:disabled){background:#fff;color:#9E6900;}
   #BtnPrintInv,#BtnPrintInvoice{background:#009688;border-color:#009688;}
   #BtnPrintInv:hover:not(:disabled),#BtnPrintInvoice:hover:not(:disabled){background:#fff;color:#009688;}
+  /* Botón para abrir la vista anual del calendario */
+  #BtnYearView{background:#137CBD;border-color:#137CBD;}
+  #BtnYearView:hover:not(:disabled){background:#fff;color:#137CBD;}
   button[id^="BtnDel"]{background:#d90429;border-color:#d90429;}
   button[id^="BtnDel"]:hover:not(:disabled){background:#fff;color:#d90429;}
   button[id^="BtnEdit"]{background:#ff8c00;border-color:#ff8c00;}

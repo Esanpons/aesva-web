@@ -117,22 +117,21 @@ function openCalendarPopup() {
 
       function updateSummary(){
         if(!summaryDiv) return;
-        const year = yearSel.value;
-        let vac=0, fest=0, labor=0;
+        const year = parseInt(yearSel.value,10);
+        let fest=0, vac=0, nonWorkingWeek=0, days=0;
         for(let d=new Date(year,0,1); d.getFullYear()==year; d.setDate(d.getDate()+1)){
+          days++;
+          if(!weekConfig[d.getDay()]) nonWorkingWeek++;
           const dateStr=d.toISOString().substring(0,10);
           const rec=calendarDays.find(c=>c.date===dateStr);
-          const working=weekConfig[d.getDay()];
           if(rec){
             if(rec.type==='vacaciones') vac++;
             else if(rec.type==='festivo') fest++;
           }
-          if(working){
-            if(!rec || (rec.type!=='vacaciones' && rec.type!=='festivo')) labor++;
-          }
         }
-          const remain = (company.totalVacationDays||0) - vac;
-          summaryDiv.innerHTML=`
+        const labor=days - nonWorkingWeek - fest - (company.totalVacationDays||0);
+        const remain=(company.totalVacationDays||0) - vac;
+        summaryDiv.innerHTML=`
             <div><span>Vacaciones</span><strong>${vac}</strong></div>
             <div><span>Festivos</span><strong>${fest}</strong></div>
             <div><span>Laborables</span><strong>${labor}</strong></div>

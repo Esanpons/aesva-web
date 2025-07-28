@@ -6,6 +6,8 @@ function openCalendarYear(year){
     .then(html=>{
       const doc=new DOMParser().parseFromString(html,'text/html');
       const page=doc.getElementById('calendarYearPage');
+      const title=page.querySelector('.modal-title');
+      if(title) title.textContent=`Calendario anual ${year}`;
       yearBackdrop=document.createElement('div');
       yearBackdrop.className='modal-backdrop';
       const modal=document.createElement('div');
