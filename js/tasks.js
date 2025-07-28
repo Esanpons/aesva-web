@@ -25,6 +25,7 @@ function openTasksPopup() {
       const btnEdit = backdrop.querySelector("#BtnEditTask");
       const btnDup = backdrop.querySelector("#BtnDupTask");
       const btnDel = backdrop.querySelector("#BtnDelTask");
+      const btnFixText = backdrop.querySelector("#BtnFixTaskText");
       const statusFilter = backdrop.querySelector("#taskStatusFilter");
       const searchInput = backdrop.querySelector("#taskSearchFilter");
       const closeBtn = backdrop.querySelector(".close");
@@ -108,6 +109,14 @@ function openTasksPopup() {
             }
           })();
         }
+      });
+
+      btnFixText.addEventListener("click", async () => {
+        btnFixText.disabled = true;
+        await correctRecordsSequential(tasks, 'tasks', 'taskDescription');
+        await loadFromDb();
+        renderTasks();
+        btnFixText.disabled = false;
       });
 
       closeBtn.addEventListener("click", closePopup);

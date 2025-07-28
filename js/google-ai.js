@@ -1,9 +1,9 @@
 /*************** Corrección ortográfica con Google AI ****************/
-window.aiConfig = window.aiConfig || { apiKey: '', model: '', languages: [] };
+window.aiConfig = window.aiConfig || { apiKey: '', model: '', language: 'es' };
 
 function buildSpellPrompt(text) {
-  const langs = aiConfig.languages.join(' y ');
-  const langPart = langs ? ' en ' + langs : '';
+  const lang = aiConfig.language;
+  const langPart = lang ? ' en ' + lang : '';
   return (
     `Corrige únicamente las faltas de ortografía` +
     `${langPart} en el texto siguiente manteniendo todas las palabras y su orden.` +
@@ -52,3 +52,21 @@ async function correctFieldIfNeeded(table, field, previous, current) {
 }
 
 window.correctFieldIfNeeded = correctFieldIfNeeded;
+
+async function correctRecordsSequential(records, table, field) {
+  if (!aiConfig.apiKey || !aiConfig.model) return;
+  for (const rec of records) {
+    const original = rec[field] || '';
+    const fixed = await correctText(original);
+    if (fixed && fixed !== original) {
+      try {
+        await db.update(table, { id: rec.id }, { [field]: fixed });
+        rec[field] = fixed;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+}
+
+window.correctRecordsSequential = correctRecordsSequential;

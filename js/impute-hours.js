@@ -143,6 +143,7 @@ const btnEditImp = document.getElementById("BtnEditImputation");
 const btnDelImp = document.getElementById("BtnDelImputation");
 const btnLoadAllImp = document.getElementById("BtnLoadAllImp");
 const btnExportImp = document.getElementById("BtnExportImp");
+const btnFixImpText = document.getElementById("BtnFixImpText");
 btnAddImp.addEventListener("click", () => openImputationModal());
 
 let selectedImputationId = null;
@@ -174,6 +175,13 @@ btnLoadAllImp.addEventListener("click", async () => {
   selectedImputationId = null;
 });
 btnExportImp.addEventListener("click", exportImputationsCsv);
+btnFixImpText.addEventListener("click", async () => {
+  btnFixImpText.disabled = true;
+  await correctRecordsSequential(imputations, 'imputations', 'comments');
+  await loadFromDb();
+  renderImputations();
+  btnFixImpText.disabled = false;
+});
 
 function renderImputations() {
   imputationsTableBody.innerHTML = "";

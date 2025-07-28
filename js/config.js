@@ -1,6 +1,6 @@
 /*************** Configuración Supabase ****************/
 window.supabaseCreds = { url: '', key: '' };
-window.aiConfig = { apiKey: '', model: '', languages: [] };
+window.aiConfig = { apiKey: '', model: '', language: 'es' };
 let currentConfigBackdrop = null;
 
 function loadSupabaseCreds() {
@@ -15,8 +15,7 @@ function loadSupabaseCreds() {
 function loadAiConfig() {
   aiConfig.apiKey = localStorage.getItem('googleApiKey') || '';
   aiConfig.model = localStorage.getItem('googleModel') || '';
-  const langs = localStorage.getItem('spellLangs') || 'es,ca';
-  aiConfig.languages = langs.split(',').map(l => l.trim()).filter(Boolean);
+  aiConfig.language = localStorage.getItem('spellLang') || 'es';
 }
 
 function openConfigPopup() {
@@ -46,7 +45,7 @@ function openConfigPopup() {
       const testBlock = form.querySelector('#testFields');
       const googleKey = form.elements['googleApiKey'];
       const googleModel = form.elements['googleModel'];
-      const spellLangs = form.elements['spellLangs'];
+      const spellLangSel = form.elements['spellLang'];
 
       function updateFields() {
         const env = envSel.value;
@@ -73,7 +72,7 @@ function openConfigPopup() {
 
       googleKey.value = localStorage.getItem('googleApiKey') || '';
       googleModel.value = localStorage.getItem('googleModel') || '';
-      spellLangs.value = localStorage.getItem('spellLangs') || 'es,ca';
+      spellLangSel.value = localStorage.getItem('spellLang') || 'es';
 
       function closePopup() {
         backdrop.remove();
@@ -94,7 +93,7 @@ function openConfigPopup() {
         const keyT = keyTest.value.trim();
         const gKey = googleKey.value.trim();
         const gModel = googleModel.value.trim();
-        const langsVal = spellLangs.value.trim();
+        const langVal = spellLangSel.value.trim();
 
         if (env === 'real' && (!urlR || !keyR)) {
           alert('Debe introducir URL y KEY de Real');
@@ -113,7 +112,7 @@ function openConfigPopup() {
 
         if (gKey) localStorage.setItem('googleApiKey', gKey); else localStorage.removeItem('googleApiKey');
         if (gModel) localStorage.setItem('googleModel', gModel); else localStorage.removeItem('googleModel');
-        if (langsVal) localStorage.setItem('spellLangs', langsVal); else localStorage.removeItem('spellLangs');
+        if (langVal) localStorage.setItem('spellLang', langVal); else localStorage.removeItem('spellLang');
 
         loadSupabaseCreds();
         loadAiConfig();
