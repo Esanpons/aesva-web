@@ -9,11 +9,17 @@ window.dbReady = (async()=>{
   }
 
   let url=localStorage.getItem('supabaseUrl');
-  if(!url) url=prompt('Supabase URL');
   let key=localStorage.getItem('supabaseKey');
-  if(!key) key=prompt('Supabase KEY');
-  if(url) localStorage.setItem('supabaseUrl',url);
-  if(key) localStorage.setItem('supabaseKey',key);
+
+  if(!url || !key){
+    document.addEventListener('DOMContentLoaded',()=>{
+      if(window.openConfigPopup) window.openConfigPopup();
+    });
+    await new Promise(res=>document.addEventListener('configSaved',res,{once:true}));
+    url=localStorage.getItem('supabaseUrl');
+    key=localStorage.getItem('supabaseKey');
+  }
+
   window.supabaseClient=supabase.createClient(url,key);
 
   const camel=str=>str.replace(/_([a-z])/g,(m,g)=>g.toUpperCase());
