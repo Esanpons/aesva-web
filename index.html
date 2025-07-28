@@ -7,45 +7,79 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/calendar-year.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/15.0.0/material-components-web.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/15.0.0/material-components-web.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 
 <body>
     <!-- Encabezado de la aplicación -->
-    <header class="app-header">
-        <div class="app-header__inner">
-            <div class="app-title">Aesva Impute Time <span id="envLabel" class="env-indicator"></span></div>
-            <div class="app-subtitle">Gestión e imputación de horas</div>
+    <header class="mdc-top-app-bar app-header mdc-top-app-bar--fixed">
+        <div class="mdc-top-app-bar__row">
+            <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+                <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" aria-label="menu" id="menu-btn">menu</button>
+                <span class="mdc-top-app-bar__title">Aesva Impute Time <span id="envLabel" class="env-indicator"></span></span>
+            </section>
+            <section class="mdc-top-app-bar__section">
+                <div class="mdc-typography--subtitle2">Gestión e imputación de horas</div>
+            </section>
+            <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+                <div id="viewFilters" class="mdc-segmented-button" role="group">
+                    <button type="button" class="mdc-segmented-button__segment mdc-segmented-button__segment--selected" aria-pressed="true" data-filter="all"><span class="mdc-segmented-button__label">Todo</span></button>
+                    <button type="button" class="mdc-segmented-button__segment" aria-pressed="false" data-filter="today"><span class="mdc-segmented-button__label">Hoy</span></button>
+                    <button type="button" class="mdc-segmented-button__segment" aria-pressed="false" data-filter="week"><span class="mdc-segmented-button__label">Semana</span></button>
+                    <button type="button" class="mdc-segmented-button__segment" aria-pressed="false" data-filter="month"><span class="mdc-segmented-button__label">Mes</span></button>
+                    <button type="button" class="mdc-segmented-button__segment" aria-pressed="false" data-filter="prevMonth"><span class="mdc-segmented-button__label">Mes anterior</span></button>
+                </div>
+            </section>
         </div>
     </header>
 
-    <main>
+    <div class="mdc-drawer-app-content">
+    <main class="container-lg mt-3">
+        <div class="row">
         <!-- Panel lateral (menú + filtros) -->
-        <aside id="filterPane">
-            <nav class="menu-block">
-                <h3 class="menu-title">Menú</h3>
-                <ul class="menu-buttons">
-                    <li><button id="btnCustomers" class="Buttons primary" type="button">Clientes</button></li>
-                    <li><button id="btnTasks" class="Buttons primary" type="button">Tareas</button></li>
-                    <li><button id="btnCalendar" class="Buttons primary" type="button">Calendario</button></li>
-                    <li><button id="btnCompany" class="Buttons primary" type="button">Empresa</button></li>
-                    <li><button id="btnInvoices" class="Buttons primary" type="button">Facturas</button></li>
-                    <li><button id="btnConfig" class="Buttons primary" type="button">Configuración</button></li>
-                </ul>
-            </nav>
+        <aside id="filterPane" class="mdc-drawer col-12 col-md-3">
+            <div class="mdc-drawer__header">
+                <h3 class="mdc-drawer__title">Menú</h3>
+            </div>
+            <div class="mdc-drawer__content">
+                <nav class="mdc-list">
+                    <a class="mdc-list-item" href="#" id="btnCustomers" aria-label="Clientes">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">groups</span>
+                        <span class="mdc-list-item__text">Clientes</span>
+                    </a>
+                    <a class="mdc-list-item" href="#" id="btnTasks" aria-label="Tareas">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">checklist</span>
+                        <span class="mdc-list-item__text">Tareas</span>
+                    </a>
+                    <a class="mdc-list-item" href="#" id="btnCalendar" aria-label="Calendario">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">calendar_month</span>
+                        <span class="mdc-list-item__text">Calendario</span>
+                    </a>
+                    <a class="mdc-list-item" href="#" id="btnCompany" aria-label="Empresa">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">business</span>
+                        <span class="mdc-list-item__text">Empresa</span>
+                    </a>
+                    <a class="mdc-list-item" href="#" id="btnInvoices" aria-label="Facturas">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">request_quote</span>
+                        <span class="mdc-list-item__text">Facturas</span>
+                    </a>
+                    <a class="mdc-list-item" href="#" id="btnConfig" aria-label="Configuración">
+                        <span class="mdc-list-item__graphic material-icons" aria-hidden="true">settings</span>
+                        <span class="mdc-list-item__text">Configuración</span>
+                    </a>
+                </nav>
 
-            <div class="filters-block">
-                <h3 class="menu-title">Vistas</h3>
-                <ul class="filter-list">
-                    <li data-filter="all" class="active">Todo</li>
-                    <li data-filter="today">Hoy</li>
-                    <li data-filter="week">Esta semana</li>
-                    <li data-filter="month">Mes</li>
-                    <li data-filter="prevMonth">Mes anterior</li>
-                </ul>
-                <input type="text" id="searchFilter" placeholder="Filtrar lista por..." />
+                <div class="filters-block p-3">
+                    <input type="text" id="searchFilter" class="form-control" placeholder="Filtrar lista por..." />
+                </div>
             </div>
         </aside>
+        <div class="mdc-drawer-scrim"></div>
 
         <div class="content">
             <!-- Control de fichaje -->
@@ -81,32 +115,31 @@
                 <header class="section-header">
                     <h2>Imputaciones</h2>
                     <div class="header-buttons">
-                        <button class="Buttons" id="BtnAddImputation" type="button">+ Añadir imputación</button>
-                        <button class="Buttons primary" id="BtnEditImputation" type="button" disabled>Editar</button>
-                        <button class="Buttons" id="BtnDelImputation" type="button" disabled>Eliminar</button>
-                        <button class="Buttons" id="BtnLoadAllImp" type="button">Cargar todo</button>
-                        <button class="Buttons" id="BtnExportImp" type="button">Exportar CSV</button>
+                        <button class="mdc-icon-button material-icons" id="BtnEditImputation" aria-label="Editar" disabled>edit</button>
+                        <button class="mdc-icon-button material-icons" id="BtnDelImputation" aria-label="Eliminar" disabled>delete</button>
+                        <button class="mdc-icon-button material-icons" id="BtnLoadAllImp" aria-label="Cargar todo">cloud_upload</button>
+                        <button class="mdc-icon-button material-icons" id="BtnExportImp" aria-label="Exportar CSV">file_download</button>
                     </div>
                 </header>
-                <div class="table-responsive">
-                    <table id="imputationsTable">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Total</th>
-                                <th>Decimal</th>
-                                <th>Minutos</th>
-                                <th>Tarea</th>
-                                <th>Nº tarea cliente</th>
-                                <th>No Fee</th>
-                                <th>Festivo</th>
-                                <th>Vacaciones</th>
-                                <th>Comentarios</th>
+                <div class="mdc-data-table table-responsive" id="imputationsTableWrapper">
+                    <table id="imputationsTable" class="table table-striped mdc-data-table__table" aria-label="Imputaciones">
+                        <thead class="mdc-data-table__header">
+                            <tr class="mdc-data-table__header-row">
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Fecha</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Entrada</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Salida</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Total</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Decimal</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Minutos</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Tarea</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Nº tarea cliente</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">No Fee</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Festivo</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Vacaciones</th>
+                                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Comentarios</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody class="mdc-data-table__content"></tbody>
                     </table>
                 </div>
                 <div id="totalsBar">
@@ -117,8 +150,15 @@
                     <div><span>Horas previstas:</span><strong id="totExpected">0</strong></div>
                 </div>
             </section>
-        </div>
+            <button id="BtnAddImputation" class="mdc-fab mdc-fab--extended fab-add">
+                <span class="mdc-fab__ripple"></span>
+                <span class="mdc-fab__icon material-icons">add</span>
+                <span class="mdc-fab__label">Añadir imputación</span>
+            </button>
+        </div><!-- /content -->
+        </div><!-- /row -->
     </main>
+    </div><!-- drawer-app-content -->
 
     <!-- Template modal de Imputaciones -->
     <template id="imputationModalTmpl">
@@ -154,6 +194,26 @@
         </div>
     </template>
 
+    <div class="mdc-snackbar" id="appSnackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label" role="status" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div class="mdc-dialog" id="confirmDialog">
+        <div class="mdc-dialog__container">
+            <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true">
+                <h2 class="mdc-dialog__title" id="confirmDialog-title">Confirmar</h2>
+                <div class="mdc-dialog__content" id="confirmDialog-content">¿Eliminar registro?</div>
+                <footer class="mdc-dialog__actions">
+                    <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="no"><span class="mdc-button__label">Cancelar</span></button>
+                    <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes"><span class="mdc-button__label">Eliminar</span></button>
+                </footer>
+            </div>
+        </div>
+        <div class="mdc-dialog__scrim"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/conection-bbdd.js"></script>
     <script src="js/config.js"></script>
@@ -167,6 +227,7 @@
     <script src="js/company.js"></script>
     <script src="js/invoice-print.js"></script>
     <script src="js/invoices.js"></script>
+    <script src="js/ui-mdc.js"></script>
 </body>
 
 </html>

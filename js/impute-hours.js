@@ -157,12 +157,13 @@ btnEditImp.addEventListener("click", () => {
 });
 btnDelImp.addEventListener("click", async () => {
   if (!selectedImputationId) return;
-  if (confirm("¿Eliminar imputación?")) {
+  if (await confirmDialog("¿Eliminar imputación?")) {
     try {
       await db.delete('imputations', { id: selectedImputationId });
       await loadFromDb();
       selectedImputationId = null;
       updateTimer();
+      showSnackbar('Imputación eliminada');
     } catch (err) {
       console.error(err);
       alert('Error al eliminar la imputación');
@@ -193,8 +194,8 @@ function renderImputations() {
         <td>${task ? task.subject : ""}</td>
         <td>${task ? task.clientTaskNo || "" : ""}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
-        <td>${rec.isHoliday ? "Sí" : "No"}</td>
-        <td>${rec.isVacation ? "Sí" : "No"}</td>
+        <td>${rec.isHoliday ? '<span class="badge bg-danger text-light">Festivo</span>' : ''}</td>
+        <td>${rec.isVacation ? '<span class="badge bg-primary-subtle text-dark">Vacaciones</span>' : ''}</td>
         <td>${rec.comments || ""}</td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
     tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
@@ -315,7 +316,7 @@ function exportImputationsCsv() {
   URL.revokeObjectURL(a.href);
 }
 
-function activeFilter() { return document.querySelector('#filterPane li.active[data-filter]')?.dataset.filter || "all"; }
+// activeFilter implemented in ui-mdc.js
 function rowMatchesDate(filter, date) {
   const now = new Date();
   if (filter === "today") return sameDay(date, now);
@@ -328,10 +329,6 @@ function rowMatchesDate(filter, date) {
   return true;
 }
 
-Array.from(document.querySelectorAll('#filterPane li[data-filter]')).forEach(li => li.addEventListener('click', () => {
-  document.querySelector('#filterPane li.active[data-filter]').classList.remove('active');
-  li.classList.add('active'); renderImputations();
-}));
 document.getElementById('searchFilter').addEventListener('input', () => renderImputations());
 
 // Crear imputación abierta
@@ -463,6 +460,7 @@ function openImputationModal(record = null) {
       }
       backdrop.remove();
       updateTimer();
+      showSnackbar('Imputación guardada');
     } catch (err) {
       console.error(err);
       alert('Error al guardar la imputación');

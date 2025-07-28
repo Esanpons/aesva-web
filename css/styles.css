@@ -1,12 +1,12 @@
 /* ===================== THEME ===================== */
 :root {
-  --primary: #176B87;
-  --primary-hover: #1f8aa9;
-  --accent: #57cc99;
-  --accent-hover: #3fb784;
-  --danger: #e58a9c;
-  --danger-hover: #d66d82;
-  --bg: #f4f6f8;
+  --primary: #0061A6;
+  --primary-hover: #00518c;
+  --accent: #4C7D54;
+  --accent-hover: #3a6241;
+  --danger: #B3261E;
+  --danger-hover: #8c1f18;
+  --bg: #F7F9FC;
   --text: #2a2f33;
   --card-bg: #ffffff;
   --border: #e3e8ec;
@@ -17,11 +17,20 @@
   font-size: 16px;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --text: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --border: #333;
+  }
+}
+
 body,
 html {
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Roboto", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -166,7 +175,7 @@ main {
 .TiempoTrabajado {
   color: var(--primary);
   font-size: 30pt;
-  font-family: 'Segoe UI';
+  font-family: 'Roboto';
 }
 
 #TitleTiempoTotalTrabajado:hover {
@@ -234,7 +243,7 @@ main {
   justify-content: center;
   outline: none;
   border-radius: 40px;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Roboto', sans-serif;
   border: 2px solid;
   background: var(--accent);
   border-color: var(--accent);
@@ -625,4 +634,11 @@ tbody tr.selected {
 #calendarSummary strong {
   font-size: .85rem;
   color: var(--primary);
+}
+
+.fab-add {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1050;
 }
