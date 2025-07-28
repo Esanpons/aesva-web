@@ -155,18 +155,22 @@ btnEditImp.addEventListener("click", () => {
   const rec = imputations.find(r => r.id === selectedImputationId);
   if (rec) openImputationModal(rec);
 });
-btnDelImp.addEventListener("click", async () => {
+const deleteDlg = new mdc.dialog.MDCDialog(document.getElementById('deleteDialog'));
+const saveSnack = new mdc.snackbar.MDCSnackbar(document.getElementById("saveSnack"));
+btnDelImp.addEventListener("click", () => {
   if (!selectedImputationId) return;
-  if (confirm("¿Eliminar imputación?")) {
-    try {
-      await db.delete('imputations', { id: selectedImputationId });
-      await loadFromDb();
-      selectedImputationId = null;
-      updateTimer();
-    } catch (err) {
-      console.error(err);
-      alert('Error al eliminar la imputación');
-    }
+  deleteDlg.open();
+});
+document.getElementById('deleteDialog').addEventListener('MDCDialog:closed', async e => {
+  if (e.detail.action !== 'delete') return;
+  try {
+    await db.delete('imputations', { id: selectedImputationId });
+    await loadFromDb();
+    selectedImputationId = null;
+    updateTimer();
+  } catch (err) {
+    console.error(err);
+    alert('Error al eliminar la imputación');
   }
 });
 btnLoadAllImp.addEventListener("click", async () => {
@@ -184,6 +188,8 @@ function renderImputations() {
     const task = tasks.find(t => t.id == rec.taskId);
     const tr = document.createElement("tr");
     tr.dataset.id = rec.id;
+    const fest = rec.isHoliday ? '<span class="mdc-chip">Festivo</span>' : '';
+    const vac = rec.isVacation ? '<span class="mdc-chip">Vacaciones</span>' : '';
     tr.innerHTML = `<td>${rec.date.toLocaleDateString()}</td>
         <td>${fmtClock(rec.inDate)}</td>
         <td>${rec.outDate ? fmtClock(rec.outDate) : ""}</td>
@@ -193,8 +199,8 @@ function renderImputations() {
         <td>${task ? task.subject : ""}</td>
         <td>${task ? task.clientTaskNo || "" : ""}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
-        <td>${rec.isHoliday ? "Sí" : "No"}</td>
-        <td>${rec.isVacation ? "Sí" : "No"}</td>
+        <td>${fest}</td>
+        <td>${vac}</td>
         <td>${rec.comments || ""}</td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
     tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
@@ -315,7 +321,9 @@ function exportImputationsCsv() {
   URL.revokeObjectURL(a.href);
 }
 
-function activeFilter() { return document.querySelector('#filterPane li.active[data-filter]')?.dataset.filter || "all"; }
+function activeFilter() {
+  return document.querySelector('#viewSegments .mdc-segmented-button__segment--selected')?.dataset.filter || 'all';
+}
 function rowMatchesDate(filter, date) {
   const now = new Date();
   if (filter === "today") return sameDay(date, now);
@@ -327,12 +335,13 @@ function rowMatchesDate(filter, date) {
   }
   return true;
 }
-
-Array.from(document.querySelectorAll('#filterPane li[data-filter]')).forEach(li => li.addEventListener('click', () => {
-  document.querySelector('#filterPane li.active[data-filter]').classList.remove('active');
-  li.classList.add('active'); renderImputations();
+Array.from(document.querySelectorAll("#viewSegments .mdc-segmented-button__segment")).forEach(seg=>seg.addEventListener("click",()=>{
+  document.querySelector("#viewSegments .mdc-segmented-button__segment--selected")?.classList.remove("mdc-segmented-button__segment--selected");
+  seg.classList.add("mdc-segmented-button__segment--selected");
+  renderImputations();
 }));
-document.getElementById('searchFilter').addEventListener('input', () => renderImputations());
+document.getElementById("searchFilter").addEventListener("input",()=>renderImputations());
+
 
 // Crear imputación abierta
 async function createOpenImputation(inDate, taskId, comments = '', noFee = false) {
@@ -463,6 +472,7 @@ function openImputationModal(record = null) {
       }
       backdrop.remove();
       updateTimer();
+      saveSnack.open();
     } catch (err) {
       console.error(err);
       alert('Error al guardar la imputación');
