@@ -11,8 +11,9 @@ window.company = {};
 window.taskSeq = 1;
 window.imputationSeq = 1;
 
-const pad2 = n => n.toString().padStart(2,'0');
-const formatDate = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+// local util to pad numbers when building date strings for queries
+const pad2d = n => n.toString().padStart(2,'0');
+const formatDate = d => `${d.getFullYear()}-${pad2d(d.getMonth()+1)}-${pad2d(d.getDate())}`;
 
 async function loadCustomers(){
   window.customers = await db.select('customers');
