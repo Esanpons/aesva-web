@@ -29,7 +29,7 @@ async function loadInvoices(){
   const lines = await db.select('invoice_lines');
   window.invoices = invs.map(inv=>({
     ...inv,
-    paid: !!inv.paid,
+    paid: !!(inv.invoicePayment ?? inv.paid),
     lines: lines
       .filter(l=>l.invoiceNo===inv.no)
       .sort((a,b)=>a.lineNo-b.lineNo)

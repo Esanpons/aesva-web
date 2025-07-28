@@ -267,7 +267,6 @@ function openInvoiceModal(invoice=null,onSave){
       if(el.type==='button' || el.type==='submit') return;
       el.disabled = locked;
     });
-    btnSave.disabled = locked;
     renderLines();
   }
   paidChk.addEventListener('change', updateLocked);
@@ -328,7 +327,7 @@ function openInvoiceModal(invoice=null,onSave){
           vat: data.vat,
           irpf: data.irpf,
           arrayLinesInvoicePrint: data.arrayLinesInvoicePrint,
-          paid: data.paid
+          invoicePayment: data.paid
         });
         await db.delete('invoice_lines',{invoice_no:invoice.no});
       }else{
@@ -340,7 +339,7 @@ function openInvoiceModal(invoice=null,onSave){
           vat: data.vat,
           irpf: data.irpf,
           arrayLinesInvoicePrint: data.arrayLinesInvoicePrint,
-          paid: data.paid
+          invoicePayment: data.paid
         });
         company.invoiceNumbering = incrementInvoiceNumber(data.no);
         if(company.id)
