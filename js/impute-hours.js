@@ -174,14 +174,7 @@ btnExportImp.addEventListener("click",exportImputationsCsv);
 function renderImputations(){
   imputationsTableBody.innerHTML="";
   const filter=activeFilter(),txt=document.getElementById("searchFilter").value.toLowerCase();
-  const list = imputations
-    .filter(r=>rowMatchesDate(filter,r.date))
-    .filter(r=>{
-      if(!txt) return true;
-      const t=tasks.find(t=>t.id==r.taskId);
-      return (t && ((t.subject||'').toLowerCase().includes(txt) || (t.clientTaskNo||'').toLowerCase().includes(txt))) || (r.comments && r.comments.toLowerCase().includes(txt));
-    })
-    .sort((a,b)=>b.inDate - a.inDate);
+  const list = filterImputations().sort((a,b)=>b.inDate - a.inDate);
   if(selectedImputationId===null && list.length) selectedImputationId=list[0].id;
   list.forEach(rec=>{
       const task=tasks.find(t=>t.id==rec.taskId);
@@ -204,7 +197,7 @@ function renderImputations(){
       tr.addEventListener("dblclick",()=>{ openImputationModal(rec); });
       imputationsTableBody.appendChild(tr);
     });
-  updateTotalsBar();
+  updateTotalsBar(list);
   updateImputationButtons();
 }
 
@@ -213,15 +206,24 @@ function renderImputations(){
  * - Tiempo trabajado / Decimal: imputaciones facturables (!noFee), incluidas festivos/vacaciones.
  * - Horas mínimas / laborales: sólo días con imputación facturable y no festivo/vacaciones.
  */
-function updateTotalsBar(){
+function filterImputations(){
   const filter=activeFilter(),txt=document.getElementById("searchFilter").value.toLowerCase();
-  const filtered=imputations
+  return imputations
     .filter(r=>rowMatchesDate(filter,r.date))
     .filter(r=>{
       if(!txt) return true;
       const t=tasks.find(t=>t.id==r.taskId);
-      return (t && t.subject.toLowerCase().includes(txt)) || (r.comments && r.comments.toLowerCase().includes(txt));
+      return (
+        t && (
+          (t.subject||"").toLowerCase().includes(txt) ||
+          (t.clientTaskNo||"").toLowerCase().includes(txt)
+        )
+      ) || (r.comments && r.comments.toLowerCase().includes(txt));
     });
+}
+
+function updateTotalsBar(list=null){
+  const filtered=list||filterImputations();
 
   let totalMs=0,totalDec=0,totalMin=0;
   const dateMap=new Map(); // dateKey -> {billable,min,isHoliday,isVacation}
