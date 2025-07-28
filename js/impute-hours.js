@@ -146,6 +146,7 @@ const btnExportImp = document.getElementById("BtnExportImp");
 btnAddImp.addEventListener("click", () => openImputationModal());
 
 let selectedImputationId = null;
+let impsTable = null;
 function updateImputationButtons() {
   const hasSel = !!selectedImputationId;
   btnEditImp.disabled = !hasSel;
@@ -163,9 +164,10 @@ btnDelImp.addEventListener("click", async () => {
       await loadFromDb();
       selectedImputationId = null;
       updateTimer();
+      showSnackbar('Imputación eliminada');
     } catch (err) {
       console.error(err);
-      alert('Error al eliminar la imputación');
+      showSnackbar('Error al eliminar la imputación','danger');
     }
   }
 });
@@ -193,13 +195,30 @@ function renderImputations() {
         <td>${task ? task.subject : ""}</td>
         <td>${task ? task.clientTaskNo || "" : ""}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
-        <td>${rec.isHoliday ? "Sí" : "No"}</td>
-        <td>${rec.isVacation ? "Sí" : "No"}</td>
+        <td>${rec.isHoliday ? '<span class="badge bg-warning">Festivo</span>' : ''}</td>
+        <td>${rec.isVacation ? '<span class="badge bg-info">Vacaciones</span>' : ''}</td>
         <td>${rec.comments || ""}</td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
-    tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
-    tr.addEventListener("dblclick", () => { openImputationModal(rec); });
     imputationsTableBody.appendChild(tr);
+  });
+  if (impsTable) {
+    impsTable.destroy();
+  }
+  impsTable = $("#imputationsTable").DataTable({
+    paging: true,
+    order: [],
+    language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+    info: false
+  });
+  $('#imputationsTable tbody').off('click').off('dblclick');
+  $('#imputationsTable tbody').on('click','tr',function(){
+    selectedImputationId = Number($(this).data('id'));
+    $('#imputationsTable tbody tr').removeClass('selected');
+    $(this).addClass('selected');
+    updateImputationButtons();
+  }).on('dblclick','tr',function(){
+    const rec = imputations.find(r=>r.id==$(this).data('id'));
+    if(rec) openImputationModal(rec);
   });
   updateTotalsBar(list);
   updateImputationButtons();
@@ -367,7 +386,7 @@ async function createOpenImputation(inDate, taskId, comments = '', noFee = false
       inDate: rec.inDate.toISOString(),
       outDate: null
     })
-  }).then(() => loadFromDb()).catch(console.error);
+  }).then(() => { loadFromDb(); showSnackbar('Imputación iniciada'); }).catch(console.error);
 }
 // Cerrar imputación abierta
 async function closeLastOpenImputation(outDate) {
@@ -383,7 +402,7 @@ async function closeLastOpenImputation(outDate) {
     date: formatInputDate(open.date),
     isHoliday: isWeekend(ro) || isCalendarHoliday(ro),
     isVacation: isCalendarVacation(ro)
-  }).then(() => loadFromDb()).catch(console.error);
+  }).then(() => { loadFromDb(); showSnackbar('Imputación cerrada'); }).catch(console.error);
 }
 
 function openImputationModal(record = null) {
@@ -463,9 +482,10 @@ function openImputationModal(record = null) {
       }
       backdrop.remove();
       updateTimer();
+      showSnackbar('Imputación guardada');
     } catch (err) {
       console.error(err);
-      alert('Error al guardar la imputación');
+      showSnackbar('Error al guardar la imputación','danger');
     }
   });
   document.body.appendChild(clone);
@@ -507,7 +527,9 @@ async function updateImputation(id, inDate, outDate, taskId, comments, noFeeChec
   }
   await applyAiCorrection('imputations', data, rec);
   selectedImputationId = id;
-  await db.update('imputations', { id }, data).then(() => loadFromDb()).catch(console.error);
+  await db.update('imputations', { id }, data)
+    .then(() => { loadFromDb(); showSnackbar('Imputación actualizada'); })
+    .catch(console.error);
 }
 
 async function createManualImputation(inDate, outDate, taskId, comments, noFeeChecked) {
@@ -543,7 +565,7 @@ async function createManualImputation(inDate, outDate, taskId, comments, noFeeCh
       inDate: rec.inDate.toISOString(),
       outDate: rec.outDate.toISOString()
     })
-  }).then(() => loadFromDb()).catch(console.error);
+  }).then(() => { loadFromDb(); showSnackbar('Imputación creada'); }).catch(console.error);
 }
 
 function recalcCalendarFlags() {

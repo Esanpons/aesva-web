@@ -31,11 +31,8 @@ html {
 .app-header {
   background: linear-gradient(90deg, var(--primary) 0%, #2492b2 60%, #27a4c7 100%);
   color: #fff;
-  padding: .75rem 1.5rem;
   box-shadow: var(--shadow);
-  position: sticky;
-  top: 0;
-  z-index: 30;
+  z-index: 1040;
 }
 
 .app-header__inner {
@@ -71,26 +68,27 @@ html {
 
 /* ===================== LAYOUT ===================== */
 main {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 1rem 1rem 2rem;
-  display: flex;
-  gap: 1.25rem;
-  position: relative;
-  align-items: flex-start;
+  padding: 1rem;
 }
 
 #filterPane {
-  width: 240px;
-  flex: 0 0 240px;
+  width: 260px;
+  flex: 0 0 260px;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem;
   box-shadow: var(--shadow);
-  position: sticky;
-  top: calc(var(--header-height) + .5rem);
-  height: fit-content;
+}
+
+@media(min-width:992px) {
+  #filterPane {
+    position: sticky;
+    top: calc(var(--header-height) + .5rem);
+    height: fit-content;
+    transform: none !important;
+    visibility: visible !important;
+  }
 }
 
 .content {
