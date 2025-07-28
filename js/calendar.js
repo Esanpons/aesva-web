@@ -53,9 +53,8 @@ function openCalendarPopup() {
         order.forEach((idx) => {
           const d = days[idx];
           const lbl = document.createElement("label");
-          lbl.innerHTML = `<input type="checkbox" ${
-            weekConfig[idx] ? "checked" : ""
-          }> ${d}`;
+          lbl.innerHTML = `<input type="checkbox" ${weekConfig[idx] ? "checked" : ""
+            }> ${d}`;
           lbl.querySelector("input").addEventListener("change", (e) => {
             weekConfig[idx] = e.target.checked;
             recalcCalendarFlags();
@@ -93,45 +92,44 @@ function openCalendarPopup() {
           .filter((d) => d.date.startsWith(year))
           .filter((d) => type === "all" || d.type === type)
           .sort((a, b) => a.date.localeCompare(b.date))
-        if(selectedDate===null && list.length) selectedDate=list[0].date;
+        if (selectedDate === null && list.length) selectedDate = list[0].date;
         list.forEach((rec) => {
-            const tr = document.createElement("tr");
-            tr.dataset.date = rec.date;
-            tr.innerHTML = `<td>${rec.date}</td><td>${rec.type}</td><td>${
-              rec.desc || ""
+          const tr = document.createElement("tr");
+          tr.dataset.date = rec.date;
+          tr.innerHTML = `<td>${rec.date}</td><td>${rec.type}</td><td>${rec.desc || ""
             }</td>`;
-            if (rec.date === selectedDate) tr.classList.add("selected");
-            tr.addEventListener("click", () => {
-              selectedDate = rec.date;
-              renderDays();
-            });
-            tr.addEventListener("dblclick", () => {
-              openCalModal(rec);
-            });
-            tblBody.appendChild(tr);
+          if (rec.date === selectedDate) tr.classList.add("selected");
+          tr.addEventListener("click", () => {
+            selectedDate = rec.date;
+            renderDays();
           });
+          tr.addEventListener("dblclick", () => {
+            openCalModal(rec);
+          });
+          tblBody.appendChild(tr);
+        });
         btnEdit.disabled = !selectedDate;
         btnDel.disabled = !selectedDate;
         updateSummary();
       }
 
-      function updateSummary(){
-        if(!summaryDiv) return;
-        const year = parseInt(yearSel.value,10);
-        let fest=0, vac=0, nonWorkingWeek=0, days=0;
-        for(let d=new Date(year,0,1); d.getFullYear()==year; d.setDate(d.getDate()+1)){
+      function updateSummary() {
+        if (!summaryDiv) return;
+        const year = parseInt(yearSel.value, 10);
+        let fest = 0, vac = 0, nonWorkingWeek = 0, days = 0;
+        for (let d = new Date(year, 0, 1); d.getFullYear() == year; d.setDate(d.getDate() + 1)) {
           days++;
-          if(!weekConfig[d.getDay()]) nonWorkingWeek++;
-          const dateStr=d.toISOString().substring(0,10);
-          const rec=calendarDays.find(c=>c.date===dateStr);
-          if(rec){
-            if(rec.type==='vacaciones') vac++;
-            else if(rec.type==='festivo') fest++;
+          if (!weekConfig[d.getDay()]) nonWorkingWeek++;
+          const dateStr = d.toISOString().substring(0, 10);
+          const rec = calendarDays.find(c => c.date === dateStr);
+          if (rec) {
+            if (rec.type === 'vacaciones') vac++;
+            else if (rec.type === 'festivo') fest++;
           }
         }
-        const labor=days - nonWorkingWeek - fest - (company.totalVacationDays||0);
-        const remain=(company.totalVacationDays||0) - vac;
-        summaryDiv.innerHTML=`
+        const labor = days - nonWorkingWeek - fest - (company.totalVacationDays || 0);
+        const remain = (company.totalVacationDays || 0) - vac;
+        summaryDiv.innerHTML = `
             <div><span>Vacaciones</span><strong>${vac}</strong></div>
             <div><span>Festivos</span><strong>${fest}</strong></div>
             <div><span>Laborables</span><strong>${labor}</strong></div>
@@ -150,22 +148,22 @@ function openCalendarPopup() {
           form.elements.type.value = rec.type;
           form.elements.desc.value = rec.desc || "";
           tmpl.querySelector(".modal-title").textContent = "Editar día";
-          delBtn.addEventListener('click', async()=>{
-            if(confirm("¿Eliminar día?")){
-              try{
-                await db.delete('calendar_days',{date:rec.date});
+          delBtn.addEventListener('click', async () => {
+            if (confirm("¿Eliminar día?")) {
+              try {
+                await db.delete('calendar_days', { date: rec.date });
                 await loadFromDb();
                 closeModal();
-                selectedDate=null;
+                selectedDate = null;
                 renderDays();
                 recalcCalendarFlags();
                 updateSummary();
-              }catch(err){console.error(err);alert('Error al eliminar el día');}
+              } catch (err) { console.error(err); alert('Error al eliminar el día'); }
             }
           });
         }
         else {
-          delBtn.style.display='none';
+          delBtn.style.display = 'none';
         }
         function closeModal() {
           bd.remove();
@@ -236,12 +234,12 @@ function openCalendarPopup() {
       yearSel.addEventListener("change", updateSummary);
       typeSel.addEventListener("change", () => { renderDays(); });
       typeSel.addEventListener("change", updateSummary);
-      if(btnYear) btnYear.addEventListener("click", () => openCalendarYear(yearSel.value));
+      if (btnYear) btnYear.addEventListener("click", () => openCalendarYear(yearSel.value));
       close.addEventListener("click", closePopup);
 
-  renderWeekCfg();
-  renderYearOptions();
-  renderDays();
-  updateSummary();
-});
+      renderWeekCfg();
+      renderYearOptions();
+      renderDays();
+      updateSummary();
+    });
 }
