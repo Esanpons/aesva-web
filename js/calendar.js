@@ -118,7 +118,7 @@ function openCalendarPopup() {
       function updateSummary(){
         if(!summaryDiv) return;
         const year = yearSel.value;
-        let vac=0, fest=0, nolab=0, labor=0;
+        let vac=0, fest=0, labor=0;
         for(let d=new Date(year,0,1); d.getFullYear()==year; d.setDate(d.getDate()+1)){
           const dateStr=d.toISOString().substring(0,10);
           const rec=calendarDays.find(c=>c.date===dateStr);
@@ -126,21 +126,17 @@ function openCalendarPopup() {
           if(rec){
             if(rec.type==='vacaciones') vac++;
             else if(rec.type==='festivo') fest++;
-            else if(rec.type==='no_laboral') nolab++;
           }
-          if(!working && !rec){
-            nolab++;
-          }else if(working){
-            if(!rec || (rec.type!=='vacaciones' && rec.type!=='festivo' && rec.type!=='no_laboral')) labor++;
+          if(working){
+            if(!rec || (rec.type!=='vacaciones' && rec.type!=='festivo')) labor++;
           }
         }
-        const remain = (company.totalVacationDays||0) - vac;
-        summaryDiv.innerHTML=`
-          <div><span>Vacaciones</span><strong>${vac}</strong></div>
-          <div><span>Festivos</span><strong>${fest}</strong></div>
-          <div><span>No laborales</span><strong>${nolab}</strong></div>
-          <div><span>Laborables</span><strong>${labor}</strong></div>
-          <div><span>Vacaciones restantes</span><strong>${remain}</strong></div>`;
+          const remain = (company.totalVacationDays||0) - vac;
+          summaryDiv.innerHTML=`
+            <div><span>Vacaciones</span><strong>${vac}</strong></div>
+            <div><span>Festivos</span><strong>${fest}</strong></div>
+            <div><span>Laborables</span><strong>${labor}</strong></div>
+            <div><span>Vacaciones restantes</span><strong>${remain}</strong></div>`;
       }
 
       function openCalModal(rec = null) {

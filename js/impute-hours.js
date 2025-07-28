@@ -7,7 +7,6 @@
 function calendarLookup(d){const k=d.toISOString().substring(0,10);return calendarDays.find(c=>c.date===k)||null;}
 function isCalendarHoliday(d){return calendarLookup(d)?.type==="festivo";}
 function isCalendarVacation(d){return calendarLookup(d)?.type==="vacaciones";}
-function isCalendarNoLaboral(d){return calendarLookup(d)?.type==="no_laboral";}
 function isWeekend(d){return !weekConfig[d.getDay()];}
 
 async function loadFromDb(startDate=null,endDate=null){
@@ -231,7 +230,7 @@ function updateTotalsBar(list=null){
   const filtered=list||filterImputations();
 
   let totalMs=0,totalDec=0,totalMin=0;
-  const dateMap=new Map(); // dateKey -> {billable,min,isHoliday,isVacation,isNoLaboral}
+  const dateMap=new Map(); // dateKey -> {billable,min,isHoliday,isVacation}
 
   filtered.forEach(r=>{
     if(r.outDate && !r.noFee){
@@ -242,13 +241,12 @@ function updateTotalsBar(list=null){
 
     const dateKey=r.date.toDateString();
     if(!dateMap.has(dateKey)){
-      dateMap.set(dateKey,{billable:false,min:0,isHoliday:r.isHoliday,isVacation:r.isVacation,isNoLaboral:r.isNoLaboral});
+      dateMap.set(dateKey,{billable:false,min:0,isHoliday:r.isHoliday,isVacation:r.isVacation});
     }
     const entry=dateMap.get(dateKey);
     if(r.isHoliday) entry.isHoliday=true;
     if(r.isVacation) entry.isVacation=true;
-    if(r.isNoLaboral) entry.isNoLaboral=true;
-    if(!r.noFee && !r.isHoliday && !r.isVacation && !r.isNoLaboral){
+    if(!r.noFee && !r.isHoliday && !r.isVacation){
       entry.billable=true;
       entry.min=Math.max(entry.min, r.minimumDailyHours||0);
     }
@@ -257,7 +255,7 @@ function updateTotalsBar(list=null){
 
   let totLabor=0;
   dateMap.forEach(entry=>{
-    if(entry.billable && !entry.isHoliday && !entry.isVacation && !entry.isNoLaboral) totLabor += entry.min;
+    if(entry.billable && !entry.isHoliday && !entry.isVacation) totLabor += entry.min;
   });
 
   const dates=filtered.map(r=>r.date);
@@ -353,7 +351,6 @@ function createOpenImputation(inDate,taskId,comments='',noFee=false){
     noFee:noFee || (task?!!task.noCharge:false),
     isHoliday:isWeekend(date) || isCalendarHoliday(date),
     isVacation:isCalendarVacation(date),
-    isNoLaboral:isCalendarNoLaboral(date),
     unitPriceHour:customer?customer.priceHour:0,
     vatPercentage:customer?customer.vat:0,
     irpfPercentage:customer?customer.irpf:0,
@@ -384,8 +381,7 @@ async function closeLastOpenImputation(outDate){
     totalDecimal:round2((ro-ri)/3600000),
     date:formatInputDate(open.date),
     isHoliday:isWeekend(ro) || isCalendarHoliday(ro),
-    isVacation:isCalendarVacation(ro),
-    isNoLaboral:isCalendarNoLaboral(ro)
+    isVacation:isCalendarVacation(ro)
   }).then(()=>loadFromDb()).catch(console.error);
 }
 
@@ -498,16 +494,14 @@ async function updateImputation(id,inDate,outDate,taskId,comments,noFeeChecked){
       totalDecimal:round2((ro-ri)/3600000),
       date:formatInputDate(new Date(ro.getFullYear(),ro.getMonth(),ro.getDate())),
       isHoliday:isWeekend(ro) || isCalendarHoliday(ro),
-      isVacation:isCalendarVacation(ro),
-      isNoLaboral:isCalendarNoLaboral(ro)
+      isVacation:isCalendarVacation(ro)
     });
   }else{
     Object.assign(data,{
       outDate:null,totalMs:0,totalDecimal:0,
       date:formatInputDate(new Date(ri.getFullYear(),ri.getMonth(),ri.getDate())),
       isHoliday:isWeekend(ri) || isCalendarHoliday(ri),
-      isVacation:isCalendarVacation(ri),
-      isNoLaboral:isCalendarNoLaboral(ri)
+      isVacation:isCalendarVacation(ri)
     });
   }
   selectedImputationId = id;
@@ -531,7 +525,6 @@ async function createManualImputation(inDate,outDate,taskId,comments,noFeeChecke
     noFee:noFeeChecked,
     isHoliday:isWeekend(ro) || isCalendarHoliday(ro),
     isVacation:isCalendarVacation(ro),
-    isNoLaboral:isCalendarNoLaboral(ro),
     unitPriceHour:customer?customer.priceHour:0,
     vatPercentage:customer?customer.vat:0,
     irpfPercentage:customer?customer.irpf:0,
@@ -554,7 +547,6 @@ function recalcCalendarFlags(){
   imputations.forEach(rec=>{
     rec.isHoliday = isWeekend(rec.date) || isCalendarHoliday(rec.date);
     rec.isVacation = isCalendarVacation(rec.date);
-    rec.isNoLaboral = isCalendarNoLaboral(rec.date);
   });
   renderImputations();
 }

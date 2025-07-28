@@ -16,7 +16,6 @@ function openCalendarYear(year){
       document.body.appendChild(yearBackdrop);
       const grid=yearBackdrop.querySelector('#calendarYearGrid');
       const closeBtn=yearBackdrop.querySelector('.close');
-      const tmpl=yearBackdrop.querySelector('#calModalTmpl');
       function closePopup(){yearBackdrop.remove();yearBackdrop=null;document.removeEventListener('keydown',handleEsc);}
       function handleEsc(e){if(e.key==='Escape') closePopup();}
       document.addEventListener('keydown',handleEsc);
@@ -27,13 +26,15 @@ function openCalendarYear(year){
         if(rec){
           if(rec.type==='festivo') return 'holiday';
           if(rec.type==='vacaciones') return 'vacation';
-          if(rec.type==='no_laboral') return 'nolaboral';
         }
         const d=new Date(dateStr);
         if(!weekConfig[d.getDay()]) return 'nolaboral';
         return '';
       }
-      function openDayModal(rec,dateStr){
+      async function openDayModal(rec,dateStr){
+        const html=await fetch('html/calendar.html').then(r=>r.text());
+        const doc2=new DOMParser().parseFromString(html,'text/html');
+        const tmpl=doc2.getElementById('calModalTmpl');
         const clone=tmpl.content.cloneNode(true);
         const bd=clone.querySelector('.modal-backdrop');
         const form=clone.querySelector('#calForm');

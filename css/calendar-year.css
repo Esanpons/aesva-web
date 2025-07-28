@@ -1,13 +1,14 @@
-.year-calendar{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:1rem 2rem;font-size:.65rem;}
+.year-calendar{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:1rem 2rem;font-size:.65rem;}
 .year-calendar table{border-collapse:collapse;width:100%;}
 .year-calendar th{background:#f1f5f7;padding:.25rem;font-weight:600;color:#000;}
-.year-calendar td{border:1px solid var(--border);text-align:center;height:1.1rem;color:#000;}
-.year-calendar td.holiday{background:#ffd6d6;}
+.year-calendar td{border:1px solid var(--border);text-align:center;height:.95rem;padding:0 .15rem;color:#000;}
+.year-calendar td.holiday{background:#cce2ff;}
 .year-calendar td.vacation{background:#d6ffd6;}
 .year-calendar td.nolaboral{background:#e0e0e0;}
 .calendar-legend{display:flex;gap:1rem;margin-top:1rem;font-size:.75rem;}
 .calendar-legend .label{display:flex;align-items:center;gap:.25rem;}
 .calendar-legend .box{width:12px;height:12px;border:1px solid var(--border);}
-.calendar-legend .box.holiday{background:#ffd6d6;}
+.calendar-legend .box.holiday{background:#cce2ff;}
 .calendar-legend .box.vacation{background:#d6ffd6;}
+#calendarYearPage{font-size:15px;}
 .calendar-legend .box.nolaboral{background:#e0e0e0;}

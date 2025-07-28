@@ -18,28 +18,6 @@
             <span class="label"><span class="box vacation"></span>Vacaciones</span>
             <span class="label"><span class="box nolaboral"></span>No laboral</span>
         </div>
-        <template id="calModalTmpl">
-            <div class="modal-backdrop">
-                <div class="modal">
-                    <header><span class="modal-title">Día especial</span><button class="close" type="button">×</button></header>
-                    <form id="calForm">
-                        <label>Fecha <input type="date" name="date" required></label>
-                        <label>Tipo
-                            <select name="type" required>
-                                <option value="festivo">Festivo</option>
-                                <option value="vacaciones">Vacaciones</option>
-                                <option value="no_laboral">No laboral</option>
-                            </select>
-                        </label>
-                        <label class="full">Descripción <input type="text" name="desc"></label>
-                        <footer class="full">
-                            <button type="submit" class="Buttons primary">Guardar</button>
-                            <button type="button" id="btnCalDelete" class="Buttons">Eliminar</button>
-                        </footer>
-                    </form>
-                </div>
-            </div>
-        </template>
     </div>
 </body>
 
