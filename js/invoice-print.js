@@ -1,8 +1,8 @@
 // --- Helpers para formateo ---
 function fmtNum(n, decimals = 2) {
-    return n.toLocaleString('es-ES', { 
-        minimumFractionDigits: decimals, 
-        maximumFractionDigits: decimals 
+    return n.toLocaleString('es-ES', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
     });
 }
 
@@ -11,10 +11,10 @@ function fmtCurrency(n) {
 }
 
 function fmtDate(d) {
-    return new Date(d).toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
+    return new Date(d).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
     });
 }
 
@@ -39,16 +39,16 @@ async function printInvoice(inv) {
 
         // --- Construir bloques HTML ---
         const sellerHtml = `
-            <p><strong> ${seller.name }</strong></p>
+            <p><strong> ${seller.name}</strong></p>
             <p><strong>NIF:</strong> ${seller.cif}</p>
-            <p><strong>EMAIL:</strong> ${seller.email }</p>
-            <p>${seller.address }</p>
+            <p><strong>EMAIL:</strong> ${seller.email}</p>
+            <p>${seller.address}</p>
         `;
         const buyerHtml = `
-            <p><strong> ${buyer.name }</strong></p>
-            <p><strong>NIF:</strong> ${buyer.cif }</p>
-            <p><strong>EMAIL:</strong> ${buyer.email }</p>
-            <p>${buyer.address }</p>
+            <p><strong> ${buyer.name}</strong></p>
+            <p><strong>NIF:</strong> ${buyer.cif}</p>
+            <p><strong>EMAIL:</strong> ${buyer.email}</p>
+            <p>${buyer.address}</p>
         `;
         const linesHtml = inv.lines.map(l => `
             <tr>
@@ -120,7 +120,7 @@ async function printInvoice(inv) {
 
             const matches = matchYear && matchMonth && matchCustomer;
             console.log(`Imputación ${imp.id} ${matches ? 'COINCIDE' : 'NO COINCIDE'}`);
-            
+
             return matches;
         }).sort((a, b) => {
             const dateA = a.date instanceof Date ? a.date : new Date(a.date);
@@ -238,8 +238,8 @@ async function printInvoice(inv) {
         iframeDoc.write(finalHtml);
         iframeDoc.close();
 
-        iframe.onload = function() {
-            setTimeout(function() {
+        iframe.onload = function () {
+            setTimeout(function () {
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
             }, 200);

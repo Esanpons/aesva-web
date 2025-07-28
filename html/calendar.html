@@ -21,6 +21,7 @@
                 <button class="Buttons" id="BtnAddCal" type="button">+ Nuevo día</button>
                 <button class="Buttons primary" id="BtnEditCal" type="button" disabled>Editar</button>
                 <button class="Buttons" id="BtnDelCal" type="button" disabled>Eliminar</button>
+                <button class="Buttons" id="BtnYearView" type="button">Ver año</button>
             </div>
             <label>Año <select id="calYearFilter"></select></label>
             <label>Tipo
@@ -42,6 +43,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        <div id="calendarSummary"></div>
 
         <template id="calModalTmpl">
             <div class="modal-backdrop">
@@ -57,7 +59,10 @@
                             </select>
                         </label>
                         <label class="full">Descripción <input type="text" name="desc"></label>
-                        <footer class="full"><button type="submit" class="Buttons primary">Guardar</button></footer>
+                        <footer class="full">
+                            <button type="submit" class="Buttons primary">Guardar</button>
+                            <button type="button" id="btnCalDelete" class="Buttons">Eliminar</button>
+                        </footer>
                     </form>
                 </div>
             </div>

@@ -19,10 +19,12 @@ body {
     width: 100%;
     min-height: 100vh;
     margin: 0 auto;
-    box-sizing: border-box; /* evita que el padding aumente el ancho */
+    box-sizing: border-box;
+    /* evita que el padding aumente el ancho */
     padding: 40px;
     padding-top: calc(50px);
-    padding-bottom: 80px; /* hueco para el pie de página */
+    padding-bottom: 80px;
+    /* hueco para el pie de página */
 }
 
 .main-header {
@@ -40,18 +42,48 @@ body {
     font-weight: bold;
 }
 
-.invoice-details { text-align: right; }
-.invoice-details div { margin-bottom: 5px; }
-.invoice-details span { display: inline-block; font-weight: bold; min-width: 80px; }
-.parties { display: flex; justify-content: space-between; margin-bottom: 40px; }
-.party-details { width: 48%; }
-.party-details h3 { font-size: 12px; margin: 0 0 10px 0; }
-.party-details p { margin: 2px 0; }
+.invoice-details {
+    text-align: right;
+}
 
-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.invoice-details div {
+    margin-bottom: 5px;
+}
+
+.invoice-details span {
+    display: inline-block;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.parties {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.party-details {
+    width: 48%;
+}
+
+.party-details h3 {
+    font-size: 12px;
+    margin: 0 0 10px 0;
+}
+
+.party-details p {
+    margin: 2px 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
 
 thead th {
-    background-color: var(--accent-color) !important; /* !important para asegurar la sobreescritura */
+    background-color: var(--accent-color) !important;
+    /* !important para asegurar la sobreescritura */
     color: white !important;
     font-weight: bold;
     font-size: 11pt;
@@ -71,11 +103,13 @@ tbody td {
 }
 
 .lines-table td {
-    font-size: 10pt; /* un poco más grande que el valor base */
+    font-size: 10pt;
+    /* un poco más grande que el valor base */
 }
 
 .imps-table td {
-    padding: 4px 12px 4px 8px; /* filas más compactas y algo de espacio a la derecha */
+    padding: 4px 12px 4px 8px;
+    /* filas más compactas y algo de espacio a la derecha */
 }
 
 .page-footer,
@@ -88,10 +122,25 @@ tbody td {
     font-size: 8pt;
     margin-top: 0;
 }
-.lines-table .desc { text-align: left; }
-.lines-table .qty { text-align: right; width: 15%; }
-.lines-table .price { text-align: right; width: 15%; }
-.lines-table .total { text-align: right; width: 20%; }
+
+.lines-table .desc {
+    text-align: left;
+}
+
+.lines-table .qty {
+    text-align: right;
+    width: 15%;
+}
+
+.lines-table .price {
+    text-align: right;
+    width: 15%;
+}
+
+.lines-table .total {
+    text-align: right;
+    width: 20%;
+}
 
 .totals-section {
     display: flex;
@@ -101,20 +150,65 @@ tbody td {
     border-top: 2px solid var(--accent-color);
     padding-top: 10px;
 }
-.totals-box div { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: right; padding: 3px 0; }
-.totals-box .total-label { font-weight: bold; text-align: left; font-size: 8pt; }
-.totals-box .final-total { font-weight: bold; font-size: 12pt; }
-.payment-info { margin-top: 50px; }
-.payment-info h2 { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-.payment-info p { margin: 0; }
-.imputations-page .main-header { margin-bottom: 20px; }
-.imps-table .date-col { width: 15%; }
-.imps-table .task-col { width: 15%; }
-.imps-table .qty-col { width: 15%; text-align: right; }
-.imps-table .nocharge-col { width: 10%; text-align: center; }
+
+.totals-box div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    text-align: right;
+    padding: 3px 0;
+}
+
+.totals-box .total-label {
+    font-weight: bold;
+    text-align: left;
+    font-size: 8pt;
+}
+
+.totals-box .final-total {
+    font-weight: bold;
+    font-size: 12pt;
+}
+
+.payment-info {
+    margin-top: 50px;
+}
+
+.payment-info h2 {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.payment-info p {
+    margin: 0;
+}
+
+.imputations-page .main-header {
+    margin-bottom: 20px;
+}
+
+.imps-table .date-col {
+    width: 15%;
+}
+
+.imps-table .task-col {
+    width: 15%;
+}
+
+.imps-table .qty-col {
+    width: 15%;
+    text-align: right;
+}
+
+.imps-table .nocharge-col {
+    width: 10%;
+    text-align: center;
+}
 
 /* --- REGLAS DE IMPRESIÓN ESPECÍFICAS Y CRUCIALES --- */
 @media print {
+
     /* Reseteamos el body para la impresión */
     body {
         margin: 0;
