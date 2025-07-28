@@ -44,6 +44,10 @@ function selectedTaskIdFromInput(input){
 }
 function validateTaskInput(input){
   if(!input.dataset.id){
+    if(input.value.trim() === ''){
+      input.dataset.id = '';
+      return true; // allow empty task
+    }
     alert('Tarea no válida');
     input.value = input.dataset.prev || '';
     input.dataset.id = selectedTaskIdFromInput(input);
