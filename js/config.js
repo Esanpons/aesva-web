@@ -88,3 +88,19 @@ if(document.getElementById('btnConfig'))
   document.getElementById('btnConfig').addEventListener('click',openConfigPopup);
 
 window.openConfigPopup = openConfigPopup;
+
+function updateEnvLabel(){
+  const label=document.getElementById('envLabel');
+  if(!label) return;
+  const env=localStorage.getItem('supabaseEnv')||'real';
+  if(env==='test'){
+    label.textContent='TEST';
+    label.classList.add('test');
+  }else{
+    label.textContent='';
+    label.classList.remove('test');
+  }
+}
+document.addEventListener('DOMContentLoaded',updateEnvLabel);
+document.addEventListener('configSaved',updateEnvLabel);
+window.updateEnvLabel=updateEnvLabel;
