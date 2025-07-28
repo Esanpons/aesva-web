@@ -154,7 +154,7 @@ function openTaskModal(task = null, onSave) {
     data.noCharge = form.elements["noCharge"].checked;
     data.completed = form.elements["completed"].checked;
     data.id = Number(form.elements["id"].value);
-    await applySpellcheck('tasks', data, task || {});
+    await applyAiCorrection('tasks', data, task || {});
     let savedId;
     try {
       if (task) {

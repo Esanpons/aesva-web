@@ -357,7 +357,7 @@ async function createOpenImputation(inDate, taskId, comments = '', noFee = false
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
     minimumDailyHours: customer ? customer.minimumDailyHours : 0
   });
-  await applySpellcheck('imputations', rec, {});
+  await applyAiCorrection('imputations', rec, {});
   selectedImputationId = rec.id;
   return db.insert('imputations', {
     ...sanitizeStrings({
@@ -505,7 +505,7 @@ async function updateImputation(id, inDate, outDate, taskId, comments, noFeeChec
       isVacation: isCalendarVacation(ri)
     });
   }
-  await applySpellcheck('imputations', data, rec);
+  await applyAiCorrection('imputations', data, rec);
   selectedImputationId = id;
   await db.update('imputations', { id }, data).then(() => loadFromDb()).catch(console.error);
 }
@@ -533,7 +533,7 @@ async function createManualImputation(inDate, outDate, taskId, comments, noFeeCh
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
     minimumDailyHours: customer ? customer.minimumDailyHours : 0
   });
-  await applySpellcheck('imputations', rec, {});
+  await applyAiCorrection('imputations', rec, {});
   selectedImputationId = rec.id;
   await db.insert('imputations', {
     ...sanitizeStrings({

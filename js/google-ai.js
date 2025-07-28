@@ -1,5 +1,5 @@
-// Spell checking via Google AI Studio
-window.SPELLCHECK_FIELDS = {
+// Correcciones ortográficas con el conector de Google IA
+window.AI_CORRECTION_FIELDS = {
   imputations: ['comments'],
   tasks: ['taskDescription']
 };
@@ -25,8 +25,8 @@ async function correctTextWithAI(text) {
   }
 }
 
-window.applySpellcheck = async function (table, data, original = {}) {
-  const fields = SPELLCHECK_FIELDS[table];
+window.applyAiCorrection = async function (table, data, original = {}) {
+  const fields = AI_CORRECTION_FIELDS[table];
   if (!fields) return data;
   for (const f of fields) {
     const val = data[f];
