@@ -25,6 +25,21 @@ async function printInvoice(inv) {
             console.error(i18n.t('No se encontraron imputaciones'));
             return;
         }
+        // --- Preparar datos y configurar idioma ---
+        const buyer = customers.find(c => c.no === inv.customerNo) || {};
+        const seller = company || {};
+        const originalLang = i18n.lang;
+        const originalDict = i18n.dict;
+        const invoiceLang = buyer.customerPrintLanguaje || originalLang;
+        if (invoiceLang !== originalLang) {
+            try {
+                const respLang = await fetch(`assets/lang-${invoiceLang}.json`);
+                i18n.dict = await respLang.json();
+                i18n.lang = invoiceLang;
+            } catch (e) {
+                console.error('Error al cargar idioma de factura:', e);
+            }
+        }
 
         // --- Cargar la plantilla HTML ---
         const resp = await fetch('html/invoice-print.html');
@@ -32,10 +47,6 @@ async function printInvoice(inv) {
             throw new Error(i18n.t('No se pudo cargar html/invoice-print.html'));
         }
         const template = await resp.text();
-
-        // --- Preparar datos ---
-        const buyer = customers.find(c => c.no === inv.customerNo) || {};
-        const seller = company || {};
 
         // --- Construir bloques HTML ---
         const sellerHtml = `
@@ -237,7 +248,13 @@ async function printInvoice(inv) {
         iframeDoc.open();
         iframeDoc.write(finalHtml);
         iframeDoc.close();
+        iframeDoc.documentElement.lang = i18n.lang;
         if (window.i18n) i18n.apply(iframeDoc);
+
+        if (invoiceLang !== originalLang) {
+            i18n.lang = originalLang;
+            i18n.dict = originalDict;
+        }
 
         iframe.onload = function () {
             setTimeout(function () {
