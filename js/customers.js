@@ -95,6 +95,8 @@ function openCustomerModal(customer = null, onSave) {
     Object.entries(customer).forEach(([k, v]) => { if (form.elements[k] != null) form.elements[k].value = v; });
     backdrop.querySelector(".modal-title").textContent = i18n.t("Editar cliente");
     form.elements["no"].readOnly = true;
+  } else if (form.elements["customerPrintLanguaje"]) {
+    form.elements["customerPrintLanguaje"].value = i18n.lang || 'es';
   }
   function closeModal() {
     backdrop.remove();
