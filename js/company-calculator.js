@@ -1,4 +1,4 @@
-/*************** Cálculo mensual de empresa ****************/
+/*************** Cálculo horas de empresa ****************/
 let currentCompanyCalcBackdrop = null;
 
 function openCompanyCalcPopup() {
@@ -15,7 +15,7 @@ function openCompanyCalcPopup() {
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
-      modal.className = 'modal';
+      modal.className = 'modal narrow';
       modal.appendChild(page);
       backdrop.appendChild(modal);
       document.body.appendChild(backdrop);

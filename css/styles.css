@@ -458,6 +458,11 @@ tbody tr.selected {
   animation: pop .25s ease;
 }
 
+.modal.narrow {
+  max-width: 600px;
+  width: 50%;
+}
+
 @keyframes pop {
   from {
     transform: translateY(10px);
@@ -580,6 +585,10 @@ tbody tr.selected {
 
   .modal .full {
     grid-column: 1;
+  }
+
+  .modal.narrow {
+    width: 95%;
   }
 }
 
