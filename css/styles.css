@@ -546,6 +546,20 @@ tbody tr.selected {
   margin-top: .5rem;
 }
 
+#companyCalcPage form {
+  grid-template-columns: 1fr;
+}
+
+#companyCalcPage input[readonly] {
+  background: #d0d0d0;
+  color: #333;
+}
+
+#companyCalcPage input[name="result"] {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
 @media(max-width:700px) {
   main {
     flex-direction: column;
