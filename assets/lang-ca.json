@@ -148,5 +148,6 @@
   "Error al eliminar el cliente": "Error en eliminar el client",
   "Editar cliente": "Editar client",
   "¿Eliminar factura?": "Eliminar factura?",
-  "Error al eliminar la factura": "Error en eliminar la factura"
+  "Error al eliminar la factura": "Error en eliminar la factura",
+  "Idioma interfaz": "Idioma interfície"
 }

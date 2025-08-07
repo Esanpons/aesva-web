@@ -86,7 +86,7 @@ async function loadAllData(startDate = null, endDate = null) {
     loadCalendar(),
     loadCompany()
   ]);
-  if (window.i18n) i18n.setLang(window.company.interface_language || 'es');
+  if (window.i18n) i18n.setLang(localStorage.getItem('uiLang') || 'es');
 }
 
 window.loadCustomers = loadCustomers;
