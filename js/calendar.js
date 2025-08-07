@@ -14,6 +14,7 @@ function openCalendarPopup() {
     .then((html) => {
       const doc = new DOMParser().parseFromString(html, "text/html");
       const page = doc.getElementById("calendarPage");
+      if (window.i18n) i18n.apply(page);
       calBackdrop = document.createElement("div");
       calBackdrop.className = "modal-backdrop";
       const modal = document.createElement("div");
@@ -49,7 +50,7 @@ function openCalendarPopup() {
       function renderWeekCfg() {
         weekDiv.innerHTML = "";
         const order = [1, 2, 3, 4, 5, 6, 0];
-        const days = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+        const days = i18n.lang === 'ca' ? ["DG", "DL", "DT", "DC", "DJ", "DV", "DS"] : ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
         order.forEach((idx) => {
           const d = days[idx];
           const lbl = document.createElement("label");
@@ -147,9 +148,9 @@ function openCalendarPopup() {
           form.elements.date.value = rec.date;
           form.elements.type.value = rec.type;
           form.elements.desc.value = rec.desc || "";
-          tmpl.querySelector(".modal-title").textContent = "Editar día";
+          tmpl.querySelector(".modal-title").textContent = i18n.t("Editar día");
           delBtn.addEventListener('click', async () => {
-            if (confirm("¿Eliminar día?")) {
+            if (confirm(i18n.t("¿Eliminar día?"))) {
               try {
                 await db.delete('calendar_days', { date: rec.date });
                 await loadFromDb();
@@ -158,7 +159,7 @@ function openCalendarPopup() {
                 renderDays();
                 recalcCalendarFlags();
                 updateSummary();
-              } catch (err) { console.error(err); alert('Error al eliminar el día'); }
+              } catch (err) { console.error(err); alert(i18n.t('Error al eliminar el día')); }
             }
           });
         }
@@ -204,7 +205,7 @@ function openCalendarPopup() {
             updateSummary();
           } catch (err) {
             console.error(err);
-            alert("Error al guardar el día");
+            alert(i18n.t("Error al guardar el día"));
           }
         });
         (calBackdrop || document.body).appendChild(bd);
@@ -216,7 +217,7 @@ function openCalendarPopup() {
       );
       btnDel.addEventListener("click", async () => {
         if (!selectedDate) return;
-        if (confirm("¿Eliminar día?")) {
+        if (confirm(i18n.t("¿Eliminar día?"))) {
           try {
             await db.delete("calendar_days", { date: selectedDate });
             await loadFromDb();
@@ -226,7 +227,7 @@ function openCalendarPopup() {
             updateSummary();
           } catch (err) {
             console.error(err);
-            alert("Error al eliminar el día");
+            alert(i18n.t("Error al eliminar el día"));
           }
         }
       });

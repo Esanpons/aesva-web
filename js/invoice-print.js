@@ -1,6 +1,6 @@
 // --- Helpers para formateo ---
 function fmtNum(n, decimals = 2) {
-    return n.toLocaleString('es-ES', {
+    return n.toLocaleString(i18n.lang === 'ca' ? 'ca-ES' : 'es-ES', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
     });
@@ -11,7 +11,7 @@ function fmtCurrency(n) {
 }
 
 function fmtDate(d) {
-    return new Date(d).toLocaleDateString('es-ES', {
+    return new Date(d).toLocaleDateString(i18n.lang === 'ca' ? 'ca-ES' : 'es-ES', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
@@ -22,14 +22,14 @@ async function printInvoice(inv) {
     try {
         // Verificar que tenemos acceso a los datos necesarios
         if (typeof imputations === 'undefined') {
-            console.error('No se encontraron imputaciones');
+            console.error(i18n.t('No se encontraron imputaciones'));
             return;
         }
 
         // --- Cargar la plantilla HTML ---
         const resp = await fetch('html/invoice-print.html');
         if (!resp.ok) {
-            throw new Error("No se pudo cargar html/invoice-print.html");
+            throw new Error(i18n.t('No se pudo cargar html/invoice-print.html'));
         }
         const template = await resp.text();
 
@@ -82,7 +82,7 @@ async function printInvoice(inv) {
         // Filtrar imputaciones
         const imps = imputations.filter(imp => {
             if (!imp || !imp.date) {
-                console.log('Imputación inválida:', imp);
+                console.log(i18n.t('Imputación inválida:'), imp);
                 return false;
             }
 
@@ -100,7 +100,7 @@ async function printInvoice(inv) {
             const matchMonth = impMonth === invMonth;
             const matchCustomer = task && task.customerNo === inv.customerNo;
 
-            console.log('Evaluando imputación:', {
+            console.log(i18n.t('Evaluando imputación:'), {
                 id: imp.id,
                 fecha_original: imp.date,
                 fecha_normalizada: impDate,
@@ -158,7 +158,7 @@ async function printInvoice(inv) {
 
             const makeRow = rec => {
                 const task = tasks.find(t => t.id === rec.taskId) || {};
-                const sinCargo = (rec.noFee || task.noCharge) ? 'Sí' : '';
+                const sinCargo = (rec.noFee || task.noCharge) ? i18n.t('Sí') : '';
                 const taskLabel = task.clientTaskNo || task.subject || '';
                 return `<tr>
                     <td>${fmtDate(rec.date)}</td>
@@ -237,6 +237,7 @@ async function printInvoice(inv) {
         iframeDoc.open();
         iframeDoc.write(finalHtml);
         iframeDoc.close();
+        if (window.i18n) i18n.apply(iframeDoc);
 
         iframe.onload = function () {
             setTimeout(function () {

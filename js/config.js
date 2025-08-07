@@ -22,13 +22,14 @@ function loadAiConfig() {
 function openConfigPopup() {
   if (currentConfigBackdrop) { currentConfigBackdrop.remove(); currentConfigBackdrop = null; }
 
-  fetch('html/config.html')
-    .then(r => r.text())
-    .then(html => {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const page = doc.getElementById('configPage');
-      const backdrop = document.createElement('div');
-      backdrop.className = 'modal-backdrop';
+      fetch('html/config.html')
+        .then(r => r.text())
+        .then(html => {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const page = doc.getElementById('configPage');
+          if (window.i18n) i18n.apply(page);
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.appendChild(page);
@@ -96,11 +97,11 @@ function openConfigPopup() {
         const aiL = aiLang.value;
 
         if (env === 'real' && (!urlR || !keyR)) {
-          alert('Debe introducir URL y KEY de Real');
+          alert(i18n.t('Debe introducir URL y KEY de Real'));
           return;
         }
         if (env === 'test' && (!urlT || !keyT)) {
-          alert('Debe introducir URL y KEY de Test');
+          alert(i18n.t('Debe introducir URL y KEY de Test'));
           return;
         }
 
