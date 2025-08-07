@@ -11,6 +11,7 @@ function openCustomersPopup() {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const customersPage = doc.getElementById('customersPage');
+      if (window.i18n) i18n.apply(customersPage);
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop customers-popup';
       const modal = document.createElement('div');
@@ -65,7 +66,7 @@ function openCustomersPopup() {
       });
       btnDel.addEventListener("click", async () => {
         if (!selectedCustomerNo) return;
-        if (confirm("¿Eliminar cliente?")) {
+        if (confirm(i18n.t("¿Eliminar cliente?"))) {
           try {
             await db.delete('customers', { no: selectedCustomerNo });
             await loadFromDb();
@@ -75,7 +76,7 @@ function openCustomersPopup() {
             if (window.refreshTasksPopup) window.refreshTasksPopup();
           } catch (err) {
             console.error(err);
-            alert('Error al eliminar el cliente');
+            alert(i18n.t('Error al eliminar el cliente'));
           }
         }
       });
@@ -92,7 +93,7 @@ function openCustomerModal(customer = null, onSave) {
   const form = clone.querySelector("#customerForm");
   if (customer) {
     Object.entries(customer).forEach(([k, v]) => { if (form.elements[k] != null) form.elements[k].value = v; });
-    backdrop.querySelector(".modal-title").textContent = "Editar cliente";
+    backdrop.querySelector(".modal-title").textContent = i18n.t("Editar cliente");
     form.elements["no"].readOnly = true;
   }
   function closeModal() {

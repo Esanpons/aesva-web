@@ -11,6 +11,7 @@ function openTasksPopup() {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const tasksPage = doc.getElementById('tasksPage');
+      if (window.i18n) i18n.apply(tasksPage);
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop tasks-popup';
       const modal = document.createElement('div');
@@ -68,8 +69,8 @@ function openTasksPopup() {
           const shortSub = t.subject.length > 20 ? t.subject.slice(0, 20) + '…' : t.subject;
           tr.innerHTML = `<td>${t.id}</td><td>${t.clientTaskNo || ''}</td><td>${shortSub}</td>` +
             `<td>${t.customerNo || ''}</td>` +
-            `<td>${t.noCharge ? 'Sí' : 'No'}</td>` +
-            `<td>${t.completed ? 'Sí' : 'No'}</td>`;
+            `<td>${t.noCharge ? i18n.t('Sí') : i18n.t('No')}</td>` +
+            `<td>${t.completed ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (t.id === selectedTaskId) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedTaskId = t.id; renderTasks(); });
           tr.addEventListener('dblclick', () => { openTaskModal(t, id => { selectedTaskId = id; renderTasks(); }); });
@@ -93,7 +94,7 @@ function openTasksPopup() {
       });
       btnDel.addEventListener("click", () => {
         if (!selectedTaskId) return;
-        if (confirm("¿Eliminar tarea?")) {
+        if (confirm(i18n.t("¿Eliminar tarea?"))) {
           (async () => {
             try {
               await db.delete('tasks', { id: selectedTaskId });
@@ -104,7 +105,7 @@ function openTasksPopup() {
               renderImputations();
             } catch (err) {
               console.error(err);
-              alert('Error al eliminar la tarea');
+              alert(i18n.t('Error al eliminar la tarea'));
             }
           })();
         }

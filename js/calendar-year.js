@@ -6,8 +6,9 @@ function openCalendarYear(year) {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const page = doc.getElementById('calendarYearPage');
+      if (window.i18n) i18n.apply(page);
       const title = page.querySelector('.modal-title');
-      if (title) title.textContent = `Calendario anual ${year}`;
+      if (title) title.textContent = `${i18n.t('Calendario anual')} ${year}`;
       yearBackdrop = document.createElement('div');
       yearBackdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
@@ -38,6 +39,7 @@ function openCalendarYear(year) {
         const doc2 = new DOMParser().parseFromString(html, 'text/html');
         const tmpl = doc2.getElementById('calModalTmpl');
         const clone = tmpl.content.cloneNode(true);
+        if (window.i18n) i18n.apply(clone);
         const bd = clone.querySelector('.modal-backdrop');
         const form = clone.querySelector('#calForm');
         const delBtn = clone.querySelector('#btnCalDelete');
@@ -45,16 +47,16 @@ function openCalendarYear(year) {
           form.elements.date.value = rec.date;
           form.elements.type.value = rec.type;
           form.elements.desc.value = rec.desc || '';
-          clone.querySelector('.modal-title').textContent = 'Editar día';
+          clone.querySelector('.modal-title').textContent = i18n.t('Editar día');
           delBtn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar día?')) {
+            if (confirm(i18n.t('¿Eliminar día?'))) {
               try {
                 await db.delete('calendar_days', { date: rec.date });
                 await loadFromDb();
                 recalcCalendarFlags();
                 closeModal();
                 render();
-              } catch (err) { console.error(err); alert('Error al eliminar el día'); }
+              } catch (err) { console.error(err); alert(i18n.t('Error al eliminar el día')); }
             }
           });
         } else {
@@ -78,7 +80,7 @@ function openCalendarYear(year) {
             recalcCalendarFlags();
             closeModal();
             render();
-          } catch (err) { console.error(err); alert('Error al guardar el día'); }
+          } catch (err) { console.error(err); alert(i18n.t('Error al guardar el día')); }
         });
         yearBackdrop.appendChild(bd);
       }
@@ -86,8 +88,9 @@ function openCalendarYear(year) {
         grid.innerHTML = '';
         for (let m = 0; m < 12; m++) {
           const table = document.createElement('table');
-          const monthName = new Date(year, m, 1).toLocaleString('es', { month: 'long' });
-          table.innerHTML = `<thead><tr><th colspan="7">${monthName}</th></tr><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead>`;
+        const monthName = new Date(year, m, 1).toLocaleString(i18n.lang, { month: 'long' });
+        const weekLetters = i18n.lang === 'ca' ? ['Dl','Dt','Dc','Dj','Dv','Ds','Dg'] : ['L','M','X','J','V','S','D'];
+        table.innerHTML = `<thead><tr><th colspan="7">${monthName}</th></tr><tr>${weekLetters.map(l => `<th>${l}</th>`).join('')}</tr></thead>`;
           const tbody = document.createElement('tbody');
           const first = new Date(year, m, 1);
           let start = (first.getDay() + 6) % 7;

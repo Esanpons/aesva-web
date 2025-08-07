@@ -48,7 +48,7 @@ function validateTaskInput(input) {
       input.dataset.id = '';
       return true; // allow empty task
     }
-    alert('Tarea no válida');
+    alert(i18n.t('Tarea no válida'));
     input.value = input.dataset.prev || '';
     input.dataset.id = selectedTaskIdFromInput(input);
     return false;
@@ -157,7 +157,7 @@ btnEditImp.addEventListener("click", () => {
 });
 btnDelImp.addEventListener("click", async () => {
   if (!selectedImputationId) return;
-  if (confirm("¿Eliminar imputación?")) {
+  if (confirm(i18n.t("¿Eliminar imputación?"))) {
     try {
       await db.delete('imputations', { id: selectedImputationId });
       await loadFromDb();
@@ -165,7 +165,7 @@ btnDelImp.addEventListener("click", async () => {
       updateTimer();
     } catch (err) {
       console.error(err);
-      alert('Error al eliminar la imputación');
+      alert(i18n.t('Error al eliminar la imputación'));
     }
   }
 });
@@ -300,9 +300,9 @@ function exportImputationsCsv() {
       rec.outDate ? Math.round(rec.totalMs / 60000) : '0',
       task ? task.subject : '',
       task ? task.clientTaskNo || '' : '',
-      rec.noFee ? 'Sí' : 'No',
-      rec.isHoliday ? 'Sí' : 'No',
-      rec.isVacation ? 'Sí' : 'No',
+      rec.noFee ? i18n.t('Sí') : i18n.t('No'),
+      rec.isHoliday ? i18n.t('Sí') : i18n.t('No'),
+      rec.isVacation ? i18n.t('Sí') : i18n.t('No'),
       rec.comments || ''
     ].map(esc).join(';');
   });
@@ -465,7 +465,7 @@ function openImputationModal(record = null) {
       updateTimer();
     } catch (err) {
       console.error(err);
-      alert('Error al guardar la imputación');
+      alert(i18n.t('Error al guardar la imputación'));
     }
   });
   document.body.appendChild(clone);

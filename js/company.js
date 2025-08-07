@@ -15,12 +15,14 @@ function openCompanyPopup() {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const tmpl = doc.getElementById("companyModalTmpl");
+      if (window.i18n) i18n.apply(tmpl.content);
       openCompanyModal(tmpl);
     });
 }
 
 function openCompanyModal(tmpl) {
   const clone = tmpl.content.cloneNode(true);
+  if (window.i18n) i18n.apply(clone);
   const bd = clone.querySelector(".modal-backdrop");
   const form = clone.querySelector("#companyForm");
 

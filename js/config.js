@@ -1,6 +1,7 @@
 /*************** Configuración Supabase ****************/
 window.supabaseCreds = { url: '', key: '' };
 window.aiConfig = { key: '', model: '', lang: 'es' };
+window.uiLang = 'es';
 let currentConfigBackdrop = null;
 
 function loadSupabaseCreds() {
@@ -19,16 +20,22 @@ function loadAiConfig() {
   document.dispatchEvent(new Event('aiConfigLoaded'));
 }
 
+function loadUiLang() {
+  window.uiLang = localStorage.getItem('uiLang') || 'es';
+  if (window.i18n) i18n.setLang(window.uiLang);
+}
+
 function openConfigPopup() {
   if (currentConfigBackdrop) { currentConfigBackdrop.remove(); currentConfigBackdrop = null; }
 
-  fetch('html/config.html')
-    .then(r => r.text())
-    .then(html => {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const page = doc.getElementById('configPage');
-      const backdrop = document.createElement('div');
-      backdrop.className = 'modal-backdrop';
+      fetch('html/config.html')
+        .then(r => r.text())
+        .then(html => {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const page = doc.getElementById('configPage');
+          if (window.i18n) i18n.apply(page);
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.appendChild(page);
@@ -47,6 +54,7 @@ function openConfigPopup() {
       const aiKey = form.elements['aiKey'];
       const aiModel = form.elements['aiModel'];
       const aiLang = form.elements['aiLang'];
+      const uiLang = form.elements['uiLang'];
 
       function updateFields() {
         const env = envSel.value;
@@ -73,6 +81,7 @@ function openConfigPopup() {
       aiKey.value = localStorage.getItem('aiKey') || '';
       aiModel.value = localStorage.getItem('aiModel') || '';
       aiLang.value = localStorage.getItem('aiLang') || 'es';
+      uiLang.value = localStorage.getItem('uiLang') || 'es';
 
       function closePopup() {
         backdrop.remove();
@@ -94,13 +103,14 @@ function openConfigPopup() {
         const aiK = aiKey.value.trim();
         const aiM = aiModel.value.trim();
         const aiL = aiLang.value;
+        const uiL = uiLang.value;
 
         if (env === 'real' && (!urlR || !keyR)) {
-          alert('Debe introducir URL y KEY de Real');
+          alert(i18n.t('Debe introducir URL y KEY de Real'));
           return;
         }
         if (env === 'test' && (!urlT || !keyT)) {
-          alert('Debe introducir URL y KEY de Test');
+          alert(i18n.t('Debe introducir URL y KEY de Test'));
           return;
         }
 
@@ -112,9 +122,11 @@ function openConfigPopup() {
         if (aiK) localStorage.setItem('aiKey', aiK); else localStorage.removeItem('aiKey');
         if (aiM) localStorage.setItem('aiModel', aiM); else localStorage.removeItem('aiModel');
         localStorage.setItem('aiLang', aiL);
+        localStorage.setItem('uiLang', uiL);
 
         loadSupabaseCreds();
         loadAiConfig();
+        loadUiLang();
         document.dispatchEvent(new Event('configSaved'));
         closePopup();
       });
@@ -138,6 +150,6 @@ function updateEnvLabel() {
     label.classList.remove('test');
   }
 }
-document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); updateEnvLabel(); });
-document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); updateEnvLabel(); });
+document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
+document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
 window.updateEnvLabel = updateEnvLabel;

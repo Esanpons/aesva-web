@@ -12,6 +12,7 @@ function openCompanyCalcPopup() {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const page = doc.getElementById('companyCalcPage');
+      if (window.i18n) i18n.apply(page);
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');

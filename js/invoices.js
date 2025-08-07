@@ -44,6 +44,7 @@ function openInvoicesPopup() {
     .then(html => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const page = doc.getElementById('invoicesPage');
+      if (window.i18n) i18n.apply(page);
       const bd = document.createElement('div');
       bd.className = 'modal-backdrop invoices-popup';
       const modal = document.createElement('div');
@@ -101,7 +102,7 @@ function openInvoicesPopup() {
           const cust = customers.find(c => c.no === inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
-          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td><td>${invoiceTotal(inv).toFixed(2)}</td><td>${inv.paid ? 'Sí' : 'No'}</td>`;
+          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td><td>${invoiceTotal(inv).toFixed(2)}</td><td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (inv.no === selectedNo) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick', () => { const invc = invoices.find(i => i.no === inv.no); if (invc) openInvoiceModal(invc, no => { selectedNo = no; render(); }); });
@@ -117,7 +118,7 @@ function openInvoicesPopup() {
       });
       btnDel.addEventListener('click', async () => {
         if (!selectedNo) return;
-        if (confirm('¿Eliminar factura?')) {
+        if (confirm(i18n.t('¿Eliminar factura?'))) {
           try {
             await db.delete('invoice_lines', { invoice_no: selectedNo });
             await db.delete('invoices', { no: selectedNo });
@@ -126,7 +127,7 @@ function openInvoicesPopup() {
             render();
           } catch (err) {
             console.error(err);
-            alert('Error al eliminar la factura');
+            alert(i18n.t('Error al eliminar la factura'));
           }
         }
       });
@@ -203,13 +204,13 @@ function openInvoiceModal(invoice = null, onSave) {
       inp.addEventListener('blur', () => {
         const raw = inp.value.trim();
         if (raw.includes(',') || !/^\d+(?:\.\d+)?$/.test(raw)) {
-          alert('Cantidad inválida');
+          alert(i18n.t('Cantidad inválida'));
           inp.value = inp.dataset.prev || '';
           return;
         }
         const val = parseFloat(raw);
         if (isNaN(val)) {
-          alert('Cantidad inválida');
+          alert(i18n.t('Cantidad inválida'));
           inp.value = inp.dataset.prev || '';
           return;
         }
@@ -284,7 +285,7 @@ function openInvoiceModal(invoice = null, onSave) {
       const t = tasks.find(t => t.id === imp.taskId);
       return t && t.customerNo === cust;
     }).reduce((s, imp) => s + imp.totalDecimal, 0);
-    lines.push({ description: 'Horas realizadas en el período', qty: round2(total) });
+    lines.push({ description: i18n.t('Horas realizadas en el período'), qty: round2(total) });
     selectedLine = lines.length - 1;
     renderLines();
   }
@@ -292,7 +293,7 @@ function openInvoiceModal(invoice = null, onSave) {
   function collectData() {
     for (const ln of lines) {
       if (isNaN(ln.qty)) {
-        alert('Cantidad inválida en una línea');
+        alert(i18n.t('Cantidad inválida en una línea'));
         return null;
       }
     }
