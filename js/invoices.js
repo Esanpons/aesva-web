@@ -71,7 +71,11 @@ function openInvoicesPopup() {
       function handleEsc(e) { if (e.key === 'Escape') closePopup(); }
       document.addEventListener('keydown', handleEsc);
 
-      let selectedNo = invoices.length ? invoices.slice().sort((a, b) => compareInvoiceNo(b.no, a.no))[0].no : null;
+      let selectedNo = invoices.length
+        ? invoices
+            .slice()
+            .sort((a, b) => b.date.localeCompare(a.date) || compareInvoiceNo(b.no, a.no))[0].no
+        : null;
 
       function renderYearOptions() {
         const years = Array.from(new Set(invoices.map(i => i.date.substring(0, 4))));
@@ -96,7 +100,7 @@ function openInvoicesPopup() {
         const list = invoices
           .filter(inv => inv.date.startsWith(year))
           .slice()
-          .sort((a, b) => compareInvoiceNo(b.no, a.no));
+          .sort((a, b) => b.date.localeCompare(a.date) || compareInvoiceNo(b.no, a.no));
         if (selectedNo === null && list.length) selectedNo = list[0].no;
         list.forEach(inv => {
           const cust = customers.find(c => c.no === inv.customerNo);
