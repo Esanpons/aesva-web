@@ -96,8 +96,8 @@ function openInvoicesPopup() {
         const list = invoices
           .filter(inv => inv.date.startsWith(year))
           .slice()
-          .sort((a, b) => compareInvoiceNo(a.no, b.no));
-        if (selectedNo === null && list.length) selectedNo = list[list.length - 1].no;
+          .sort((a, b) => compareInvoiceNo(b.no, a.no));
+        if (selectedNo === null && list.length) selectedNo = list[0].no;
         list.forEach(inv => {
           const cust = customers.find(c => c.no === inv.customerNo);
           const tr = document.createElement('tr');
