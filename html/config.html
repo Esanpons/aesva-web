@@ -10,32 +10,13 @@
 <body>
     <div id="configPage">
         <header>
-            <span class="modal-title">Configuración Supabase</span>
+            <span class="modal-title">Configuración</span>
             <button class="close" type="button">&times;</button>
         </header>
         <form id="configForm">
-            <label>Entorno
-                <select name="environment">
-                    <option value="real">Real</option>
-                    <option value="test">Test</option>
-                </select>
+            <label>URL Backend
+                <input type="text" name="backendUrl" />
             </label>
-            <div id="realFields" class="env-block">
-                <label>URL Supabase Real
-                    <input type="text" name="supabaseUrlReal" />
-                </label>
-                <label class="full">KEY Supabase Real
-                    <input type="text" name="supabaseKeyReal" />
-                </label>
-            </div>
-            <div id="testFields" class="env-block">
-                <label>URL Supabase Test
-                    <input type="text" name="supabaseUrlTest" />
-                </label>
-                <label class="full">KEY Supabase Test
-                    <input type="text" name="supabaseKeyTest" />
-                </label>
-            </div>
             <div id="aiFields" class="env-block">
                 <h3>Google AI Studio</h3>
                 <label class="full">API Key

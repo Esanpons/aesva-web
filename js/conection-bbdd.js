@@ -1,29 +1,17 @@
-
 window.dbReady = (async () => {
-  // Load Supabase library if not already present
-  if (!window.supabase) {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
-    document.head.appendChild(s);
-    await new Promise(res => { s.onload = res; });
-  }
+  if (!window.backendConfig) window.backendConfig = { url: '' };
 
-  if (!window.supabaseCreds) window.supabaseCreds = { url: '', key: '' };
-
-  // Wait for credentials loaded from config.js
   await new Promise(res => {
-    if (window.supabaseCreds.url && window.supabaseCreds.key) return res();
-    document.addEventListener('credsLoaded', res, { once: true });
+    if (window.backendConfig.url) return res();
+    document.addEventListener('backendConfigLoaded', res, { once: true });
   });
 
-  if (!supabaseCreds.url || !supabaseCreds.key) {
+  if (!backendConfig.url) {
     document.addEventListener('DOMContentLoaded', () => {
       if (window.openConfigPopup) window.openConfigPopup();
     });
     await new Promise(res => document.addEventListener('configSaved', res, { once: true }));
   }
-
-  window.supabaseClient = supabase.createClient(supabaseCreds.url, supabaseCreds.key);
 
   const camel = str => str.replace(/_([a-z])/g, (m, g) => g.toUpperCase());
   const decamel = str => str.replace(/([A-Z])/g, m => '_' + m.toLowerCase());
@@ -38,43 +26,41 @@ window.dbReady = (async () => {
   };
   window.sanitizeStrings = sanitizeStrings;
 
+  async function request(path, payload) {
+    const res = await fetch(`${backendConfig.url}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text);
+    }
+    return res.json();
+  }
+
   window.db = {
     async select(table, filter = {}) {
-      let q = supabaseClient.from(table).select('*');
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { data, error } = await q;
-      if (error) { console.error(error); throw error; }
+      const data = await request('/select', { table, filter: decamelKeys(filter) });
       return data.map(camelKeys);
     },
     async insert(table, data) {
       data = sanitizeStrings(data);
-      const { data: ret, error } = await supabaseClient.from(table).insert(decamelKeys(data)).select();
-      if (error) { console.error(error); throw error; }
-      return camelKeys(Array.isArray(ret) ? ret[0] : ret);
+      const ret = await request('/insert', { table, data: decamelKeys(data) });
+      return camelKeys(ret);
     },
     async update(table, filter, data) {
       data = sanitizeStrings(data);
-      let q = supabaseClient.from(table).update(decamelKeys(data));
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { data: ret, error } = await q.select();
-      if (error) { console.error(error); throw error; }
-      return camelKeys(Array.isArray(ret) ? ret[0] : ret);
+      const ret = await request('/update', { table, filter: decamelKeys(filter), data: decamelKeys(data) });
+      return camelKeys(ret);
     },
     async delete(table, filter) {
-      let q = supabaseClient.from(table).delete();
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { error } = await q;
-      if (error) { console.error(error); throw error; }
+      await request('/delete', { table, filter: decamelKeys(filter) });
       return true;
     },
     async selectRange(table, field, start, end) {
-      let q = supabaseClient.from(table).select('*');
-      if (start !== undefined) q = q.gte(field, start);
-      if (end !== undefined) q = q.lte(field, end);
-      const { data, error } = await q;
-      if (error) { console.error(error); throw error; }
+      const data = await request('/select-range', { table, field, start, end });
       return data.map(camelKeys);
     }
   };
-
 })();
