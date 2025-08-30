@@ -1,16 +1,12 @@
-/*************** Configuración Supabase ****************/
-window.supabaseCreds = { url: '', key: '' };
+/*************** Configuración Backend ****************/
+window.backendConfig = { url: '' };
 window.aiConfig = { key: '', model: '', lang: 'es' };
 window.uiLang = 'es';
 let currentConfigBackdrop = null;
 
-function loadSupabaseCreds() {
-  const env = localStorage.getItem('supabaseEnv') || 'real';
-  const url = localStorage.getItem(env === 'real' ? 'supabaseUrlReal' : 'supabaseUrlTest') || '';
-  const key = localStorage.getItem(env === 'real' ? 'supabaseKeyReal' : 'supabaseKeyTest') || '';
-  window.supabaseCreds.url = url;
-  window.supabaseCreds.key = key;
-  document.dispatchEvent(new Event('credsLoaded'));
+function loadBackendConfig() {
+  window.backendConfig.url = localStorage.getItem('backendUrl') || '';
+  document.dispatchEvent(new Event('backendConfigLoaded'));
 }
 
 function loadAiConfig() {
@@ -28,14 +24,14 @@ function loadUiLang() {
 function openConfigPopup() {
   if (currentConfigBackdrop) { currentConfigBackdrop.remove(); currentConfigBackdrop = null; }
 
-      fetch('html/config.html')
-        .then(r => r.text())
-        .then(html => {
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          const page = doc.getElementById('configPage');
-          if (window.i18n) i18n.apply(page);
-          const backdrop = document.createElement('div');
-          backdrop.className = 'modal-backdrop';
+  fetch('html/config.html')
+    .then(r => r.text())
+    .then(html => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const page = doc.getElementById('configPage');
+      if (window.i18n) i18n.apply(page);
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.appendChild(page);
@@ -44,40 +40,13 @@ function openConfigPopup() {
       currentConfigBackdrop = backdrop;
 
       const form = backdrop.querySelector('#configForm');
-      const envSel = form.elements['environment'];
-      const urlReal = form.elements['supabaseUrlReal'];
-      const keyReal = form.elements['supabaseKeyReal'];
-      const urlTest = form.elements['supabaseUrlTest'];
-      const keyTest = form.elements['supabaseKeyTest'];
-      const realBlock = form.querySelector('#realFields');
-      const testBlock = form.querySelector('#testFields');
+      const backendUrl = form.elements['backendUrl'];
       const aiKey = form.elements['aiKey'];
       const aiModel = form.elements['aiModel'];
       const aiLang = form.elements['aiLang'];
       const uiLang = form.elements['uiLang'];
 
-      function updateFields() {
-        const env = envSel.value;
-        if (env === 'real') {
-          realBlock.classList.remove('hidden');
-          testBlock.classList.add('hidden');
-          urlReal.required = keyReal.required = true;
-          urlTest.required = keyTest.required = false;
-          urlReal.value = localStorage.getItem('supabaseUrlReal') || '';
-          keyReal.value = localStorage.getItem('supabaseKeyReal') || '';
-        } else {
-          realBlock.classList.add('hidden');
-          testBlock.classList.remove('hidden');
-          urlTest.required = keyTest.required = true;
-          urlReal.required = keyReal.required = false;
-          urlTest.value = localStorage.getItem('supabaseUrlTest') || '';
-          keyTest.value = localStorage.getItem('supabaseKeyTest') || '';
-        }
-      }
-
-      envSel.value = localStorage.getItem('supabaseEnv') || 'real';
-      updateFields();
-      envSel.addEventListener('change', updateFields);
+      backendUrl.value = localStorage.getItem('backendUrl') || '';
       aiKey.value = localStorage.getItem('aiKey') || '';
       aiModel.value = localStorage.getItem('aiModel') || '';
       aiLang.value = localStorage.getItem('aiLang') || 'es';
@@ -95,36 +64,24 @@ function openConfigPopup() {
 
       form.addEventListener('submit', e => {
         e.preventDefault();
-        const env = envSel.value;
-        const urlR = urlReal.value.trim();
-        const keyR = keyReal.value.trim();
-        const urlT = urlTest.value.trim();
-        const keyT = keyTest.value.trim();
+        const url = backendUrl.value.trim();
         const aiK = aiKey.value.trim();
         const aiM = aiModel.value.trim();
         const aiL = aiLang.value;
         const uiL = uiLang.value;
 
-        if (env === 'real' && (!urlR || !keyR)) {
-          alert(i18n.t('Debe introducir URL y KEY de Real'));
-          return;
-        }
-        if (env === 'test' && (!urlT || !keyT)) {
-          alert(i18n.t('Debe introducir URL y KEY de Test'));
+        if (!url) {
+          alert(window.i18n ? i18n.t('Debe introducir URL del backend') : 'Debe introducir URL del backend');
           return;
         }
 
-        localStorage.setItem('supabaseEnv', env);
-        if (urlR) localStorage.setItem('supabaseUrlReal', urlR);
-        if (keyR) localStorage.setItem('supabaseKeyReal', keyR);
-        if (urlT) localStorage.setItem('supabaseUrlTest', urlT);
-        if (keyT) localStorage.setItem('supabaseKeyTest', keyT);
+        localStorage.setItem('backendUrl', url);
         if (aiK) localStorage.setItem('aiKey', aiK); else localStorage.removeItem('aiKey');
         if (aiM) localStorage.setItem('aiModel', aiM); else localStorage.removeItem('aiModel');
         localStorage.setItem('aiLang', aiL);
         localStorage.setItem('uiLang', uiL);
 
-        loadSupabaseCreds();
+        loadBackendConfig();
         loadAiConfig();
         loadUiLang();
         document.dispatchEvent(new Event('configSaved'));
@@ -138,18 +95,5 @@ if (document.getElementById('btnConfig'))
 
 window.openConfigPopup = openConfigPopup;
 
-function updateEnvLabel() {
-  const label = document.getElementById('envLabel');
-  if (!label) return;
-  const env = localStorage.getItem('supabaseEnv') || 'real';
-  if (env === 'test') {
-    label.textContent = 'TEST';
-    label.classList.add('test');
-  } else {
-    label.textContent = '';
-    label.classList.remove('test');
-  }
-}
-document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
-document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
-window.updateEnvLabel = updateEnvLabel;
+document.addEventListener('DOMContentLoaded', () => { loadBackendConfig(); loadAiConfig(); loadUiLang(); });
+document.addEventListener('configSaved', () => { loadBackendConfig(); loadAiConfig(); loadUiLang(); });
