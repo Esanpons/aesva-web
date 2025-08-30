@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 
 import psycopg2
 import psycopg2.extras
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -17,12 +17,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_conn(request: Request):
-    host = request.headers.get("x-db-host") or os.getenv("POSTGRES_HOST", "db")
-    port = request.headers.get("x-db-port") or os.getenv("POSTGRES_PORT", "5432")
-    dbname = request.headers.get("x-db-name") or os.getenv("POSTGRES_DB", "postgres")
-    user = request.headers.get("x-db-user") or os.getenv("POSTGRES_USER", "postgres")
-    password = request.headers.get("x-db-password") or os.getenv("POSTGRES_PASSWORD", "postgres")
+
+def get_conn():
+    host = os.getenv("POSTGRES_HOST", "db")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    dbname = os.getenv("POSTGRES_DB", "postgres")
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
     return psycopg2.connect(host=host, port=port, dbname=dbname, user=user, password=password)
 
 
@@ -59,7 +60,7 @@ def dict_rows(cur) -> List[Dict[str, Any]]:
 
 
 @app.post("/select")
-def select(req: SelectRequest, request: Request):
+def select(req: SelectRequest):
     query = f"SELECT * FROM {req.table}"
     params: List[Any] = []
     if req.filter:
@@ -68,19 +69,19 @@ def select(req: SelectRequest, request: Request):
             clauses.append(f"{k}=%s")
             params.append(v)
         query += " WHERE " + " AND ".join(clauses)
-    with get_conn(request) as conn:
+    with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, params)
             return dict_rows(cur)
 
 
 @app.post("/insert")
-def insert(req: InsertRequest, request: Request):
+def insert(req: InsertRequest):
     cols = req.data.keys()
     vals = list(req.data.values())
     placeholders = ",".join(["%s"] * len(cols))
     query = f"INSERT INTO {req.table} ({','.join(cols)}) VALUES ({placeholders}) RETURNING *"
-    with get_conn(request) as conn:
+    with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, vals)
             conn.commit()
@@ -88,12 +89,12 @@ def insert(req: InsertRequest, request: Request):
 
 
 @app.post("/update")
-def update(req: UpdateRequest, request: Request):
+def update(req: UpdateRequest):
     set_clause = ",".join([f"{k}=%s" for k in req.data.keys()])
     where_clause = " AND ".join([f"{k}=%s" for k in req.filter.keys()])
     params = list(req.data.values()) + list(req.filter.values())
     query = f"UPDATE {req.table} SET {set_clause} WHERE {where_clause} RETURNING *"
-    with get_conn(request) as conn:
+    with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, params)
             conn.commit()
@@ -101,11 +102,11 @@ def update(req: UpdateRequest, request: Request):
 
 
 @app.post("/delete")
-def delete(req: DeleteRequest, request: Request):
+def delete(req: DeleteRequest):
     where_clause = " AND ".join([f"{k}=%s" for k in req.filter.keys()])
     params = list(req.filter.values())
     query = f"DELETE FROM {req.table} WHERE {where_clause}"
-    with get_conn(request) as conn:
+    with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
             conn.commit()
@@ -113,7 +114,7 @@ def delete(req: DeleteRequest, request: Request):
 
 
 @app.post("/select-range")
-def select_range(req: RangeRequest, request: Request):
+def select_range(req: RangeRequest):
     query = f"SELECT * FROM {req.table}"
     params: List[Any] = []
     clauses = []
@@ -125,7 +126,7 @@ def select_range(req: RangeRequest, request: Request):
         params.append(req.end)
     if clauses:
         query += " WHERE " + " AND ".join(clauses)
-    with get_conn(request) as conn:
+    with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, params)
             return dict_rows(cur)
