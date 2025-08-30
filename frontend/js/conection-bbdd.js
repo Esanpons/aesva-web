@@ -1,5 +1,5 @@
 window.dbReady = (async () => {
-  if (!window.backendConfig) window.backendConfig = { url: '' };
+  if (!window.backendConfig) window.backendConfig = { url: '', dbHost: '', dbPort: '5432', dbName: '', dbUser: '', dbPassword: '' };
 
   await new Promise(res => {
     if (window.backendConfig.url) return res();
@@ -27,9 +27,15 @@ window.dbReady = (async () => {
   window.sanitizeStrings = sanitizeStrings;
 
   async function request(path, payload) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (backendConfig.dbHost) headers['X-DB-Host'] = backendConfig.dbHost;
+    if (backendConfig.dbPort) headers['X-DB-Port'] = backendConfig.dbPort;
+    if (backendConfig.dbName) headers['X-DB-Name'] = backendConfig.dbName;
+    if (backendConfig.dbUser) headers['X-DB-User'] = backendConfig.dbUser;
+    if (backendConfig.dbPassword) headers['X-DB-Password'] = backendConfig.dbPassword;
     const res = await fetch(`${backendConfig.url}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
     if (!res.ok) {

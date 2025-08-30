@@ -14,7 +14,7 @@ This command starts three services:
 * `backend` – a FastAPI app that connects to PostgreSQL using the environment variables `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD`
 * `frontend` – an Nginx container that serves the static files under `frontend/`
 
-The frontend is available at <http://localhost:8080>. It expects the backend URL to be configured via the settings modal (click the ⚙️ button). All database operations are sent to the backend through generic CRUD endpoints.
+The frontend is available at <http://localhost:8080>. It expects the backend URL and PostgreSQL credentials to be configured via the settings modal (click the ⚙️ button). The connection settings are stored in the browser's `localStorage`. All database operations are sent to the backend through generic CRUD endpoints.
 
 To initialize the database structure you can export the schema from Supabase and load it into the database service:
 
