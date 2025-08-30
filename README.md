@@ -23,3 +23,13 @@ psql postgresql://user:password@localhost:5432/appdb -f schema.sql
 ```
 
 Replace `user`, `password` and `appdb` with the credentials defined in your environment. Dokploy can deploy the same stack; just make sure all services share the same network so the backend can reach the database service.
+
+## Deploying with Dokploy
+
+You can run the three services on Dokploy as independent apps:
+
+1. **Database** – create a PostgreSQL service and note the internal host, user, database name and password.
+2. **Backend** – create an Application from the `server/` folder.  Set the environment variables `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD` to the values from the database service.
+3. **Frontend** – create an Application from the `frontend/` folder.  When opening the web page, configure the backend URL and database credentials in the settings modal (⚙️).
+
+Ensure that the three services share the same network inside Dokploy so the backend can resolve the database host.  Expose the frontend through the proxy; the backend and database can remain internal.
