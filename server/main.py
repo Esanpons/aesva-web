@@ -4,10 +4,18 @@ from typing import Optional, Dict, Any, List
 import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_conn(request: Request):
     host = request.headers.get("x-db-host") or os.getenv("POSTGRES_HOST", "db")
