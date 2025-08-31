@@ -1,29 +1,19 @@
-
+// Conexión con backend REST
 window.dbReady = (async () => {
-  // Load Supabase library if not already present
-  if (!window.supabase) {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
-    document.head.appendChild(s);
-    await new Promise(res => { s.onload = res; });
-  }
-
-  if (!window.supabaseCreds) window.supabaseCreds = { url: '', key: '' };
-
-  // Wait for credentials loaded from config.js
   await new Promise(res => {
-    if (window.supabaseCreds.url && window.supabaseCreds.key) return res();
-    document.addEventListener('credsLoaded', res, { once: true });
+    if (window.backendUrl) return res();
+    document.addEventListener('backendLoaded', res, { once: true });
   });
 
-  if (!supabaseCreds.url || !supabaseCreds.key) {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.openConfigPopup) window.openConfigPopup();
-    });
-    await new Promise(res => document.addEventListener('configSaved', res, { once: true }));
-  }
+  const baseUrl = () => (window.backendUrl || '').replace(/\/$/, '');
 
-  window.supabaseClient = supabase.createClient(supabaseCreds.url, supabaseCreds.key);
+  const tableMap = {
+    week_config: 'week-config',
+    calendar_days: 'calendar',
+    invoice_lines: 'invoice-lines',
+    company: 'companies'
+  };
+  const pathFor = tbl => tableMap[tbl] || tbl;
 
   const camel = str => str.replace(/_([a-z])/g, (m, g) => g.toUpperCase());
   const decamel = str => str.replace(/([A-Z])/g, m => '_' + m.toLowerCase());
@@ -38,43 +28,57 @@ window.dbReady = (async () => {
   };
   window.sanitizeStrings = sanitizeStrings;
 
+  async function fetchJson(url, opts = {}) {
+    const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.detail || res.statusText);
+    return data;
+  }
+
   window.db = {
     async select(table, filter = {}) {
-      let q = supabaseClient.from(table).select('*');
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { data, error } = await q;
-      if (error) { console.error(error); throw error; }
-      return data.map(camelKeys);
+      const params = new URLSearchParams(decamelKeys(filter));
+      const url = `${baseUrl()}/${pathFor(table)}${params.toString() ? `?${params}` : ''}`;
+      const data = await fetchJson(url);
+      const rows = Array.isArray(data.response) ? data.response : [data.response];
+      return rows.map(camelKeys);
     },
     async insert(table, data) {
       data = sanitizeStrings(data);
-      const { data: ret, error } = await supabaseClient.from(table).insert(decamelKeys(data)).select();
-      if (error) { console.error(error); throw error; }
-      return camelKeys(Array.isArray(ret) ? ret[0] : ret);
+      const url = `${baseUrl()}/${pathFor(table)}`;
+      const body = JSON.stringify(decamelKeys(data));
+      const ret = await fetchJson(url, { method: 'POST', body });
+      return camelKeys(ret.response);
     },
     async update(table, filter, data) {
       data = sanitizeStrings(data);
-      let q = supabaseClient.from(table).update(decamelKeys(data));
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { data: ret, error } = await q.select();
-      if (error) { console.error(error); throw error; }
-      return camelKeys(Array.isArray(ret) ? ret[0] : ret);
+      const [k, v] = Object.entries(filter)[0];
+      const url = `${baseUrl()}/${pathFor(table)}/${encodeURIComponent(v)}`;
+      const body = JSON.stringify(decamelKeys(data));
+      const ret = await fetchJson(url, { method: 'PUT', body });
+      return camelKeys(ret.response);
     },
     async delete(table, filter) {
-      let q = supabaseClient.from(table).delete();
-      Object.entries(filter).forEach(([k, v]) => { q = q.eq(k, v); });
-      const { error } = await q;
-      if (error) { console.error(error); throw error; }
+      const [k, v] = Object.entries(filter)[0];
+      const path = pathFor(table);
+      const pkFields = ['id', 'no', 'date', 'weekday'];
+      if (pkFields.includes(k)) {
+        const url = `${baseUrl()}/${path}/${encodeURIComponent(v)}`;
+        await fetchJson(url, { method: 'DELETE' });
+        return true;
+      }
+      const rows = await this.select(table, { [k]: v });
+      for (const r of rows) {
+        const pk = pkFields.find(p => p in r);
+        if (pk) await this.delete(table, { [pk]: r[pk] });
+      }
       return true;
     },
     async selectRange(table, field, start, end) {
-      let q = supabaseClient.from(table).select('*');
-      if (start !== undefined) q = q.gte(field, start);
-      if (end !== undefined) q = q.lte(field, end);
-      const { data, error } = await q;
-      if (error) { console.error(error); throw error; }
-      return data.map(camelKeys);
+      const params = {};
+      if (start !== undefined) params.start = start;
+      if (end !== undefined) params.end = end;
+      return this.select(table, params);
     }
   };
-
 })();
