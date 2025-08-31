@@ -1,4 +1,4 @@
-/*************** Carga de datos desde Supabase ****************/
+/*************** Carga de datos desde Backend ****************/
 
 // Variables globales compartidas
 window.customers = [];
