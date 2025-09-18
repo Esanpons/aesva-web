@@ -382,6 +382,24 @@ tbody tr.selected {
   background: #cfe8ff !important;
 }
 
+#tasksTable th.select-col,
+#tasksTable td.select-cell {
+  width: 48px;
+  text-align: center;
+}
+
+#tasksTable td.select-cell input {
+  cursor: pointer;
+}
+
+#tasksTable tbody tr.bulk-selected:not(.selected) {
+  background: #fff1d6;
+}
+
+#tasksTable tbody tr.selected.bulk-selected {
+  box-shadow: inset 0 0 0 2px #ffb347;
+}
+
 #invoiceTotals {
   font-size: .9rem;
   font-weight: 600;
@@ -521,6 +539,35 @@ tbody tr.selected {
   border-radius: 6px;
   font-size: .8rem;
   background: #f9fafb;
+}
+
+.task-duplicate-banner {
+  grid-column: 1 / 3;
+  background: #ffe3e3;
+  color: #b00020;
+  font-weight: 700;
+  text-align: center;
+  padding: .85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #ffb3b3;
+  font-size: 1.1rem;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+
+#taskForm.task-readonly label {
+  opacity: .6;
+}
+
+#taskForm.task-readonly input,
+#taskForm.task-readonly select {
+  cursor: not-allowed;
+}
+
+#taskForm.task-readonly .Buttons {
+  pointer-events: none;
+  opacity: .5;
 }
 
 .modal input:focus,
