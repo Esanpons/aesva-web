@@ -233,14 +233,14 @@ function openTaskModal(task = null, onSave, options = {}) {
       }
     };
     Array.from(form.elements).forEach(el => {
-      if (el.name === 'id') return;
+      if (el.name === 'id' || el.name === 'completed') return;
       if (el.tagName === 'BUTTON') {
+        if (el.type === 'submit') return;
         el.addEventListener('click', block, true);
       } else {
         ['focus', 'click', 'keydown', 'input', 'change'].forEach(evt => el.addEventListener(evt, block, true));
       }
     });
-    form.addEventListener('submit', block, true);
   }
   function closeModal() {
     backdrop.remove();
