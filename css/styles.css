@@ -560,12 +560,12 @@ tbody tr.selected {
   opacity: .6;
 }
 
-#taskForm.task-readonly input,
+#taskForm.task-readonly input:not([name="completed"]),
 #taskForm.task-readonly select {
   cursor: not-allowed;
 }
 
-#taskForm.task-readonly .Buttons {
+#taskForm.task-readonly button:not([type="submit"]) {
   pointer-events: none;
   opacity: .5;
 }
