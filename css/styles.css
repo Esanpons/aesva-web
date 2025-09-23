@@ -414,6 +414,7 @@ table td a:hover {
   outline-offset: 2px;
 }
 
+
 #tasksTable th.select-col,
 #tasksTable td.select-cell {
   width: 48px;
