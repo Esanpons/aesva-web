@@ -390,6 +390,7 @@ table td a {
 table td a:hover {
   text-decoration: underline;
 }
+
 .imputation-comment-link {
   color: var(--primary);
   background: none;

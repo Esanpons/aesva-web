@@ -60,7 +60,6 @@ function copyTextToClipboard(text) {
   }
 }
 
-
 function buildJiraLink(task) {
   const base = (window.jiraConfig?.baseUrl || '').trim();
   if (!base || !task) return { url: '', label: '' };
@@ -228,6 +227,10 @@ function renderImputations() {
     const task = tasks.find(t => t.id == rec.taskId);
     const minutes = rec.outDate ? Math.round(rec.totalMs / 60000) : 0;
 
+    const jiraLink = buildJiraLink(task);
+    const jiraUrl = jiraLink.url;
+    const jiraLabel = jiraLink.label;
+
     const commentText = rec.comments || "";
     const jiraLinkHtml = jiraUrl
       ? `<a href="${jiraUrl}" target="_blank" rel="noopener noreferrer" title="${jiraUrl}" data-role="jira-link">${jiraLabel || jiraUrl}</a>`
@@ -358,7 +361,10 @@ function exportImputationsCsv() {
   const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Enlace Jira', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
   const rows = list.map(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
-    const { url: jiraUrl } = buildJiraLink(task);
+
+    const jiraLink = buildJiraLink(task);
+    const jiraUrl = jiraLink.url;
+
     return [
       formatInputDate(rec.date),
       formatInputTime(rec.inDate),
