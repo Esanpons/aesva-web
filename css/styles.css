@@ -390,7 +390,6 @@ table td a {
 table td a:hover {
   text-decoration: underline;
 }
-
 .imputation-comment-link {
   color: var(--primary);
   background: none;
@@ -413,6 +412,7 @@ table td a:hover {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
 
 #tasksTable th.select-col,
 #tasksTable td.select-cell {
