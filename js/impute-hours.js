@@ -31,6 +31,36 @@ const round15 = d => { const ms = 15 * 60 * 1000; return new Date(Math.round(d.g
 const round2 = v => Math.round(v * 100 + Number.EPSILON) / 100;
 const sameDay = (a, b) => a.getDate() == b.getDate() && a.getMonth() == b.getMonth() && a.getFullYear() == b.getFullYear();
 
+function copyTextToClipboard(text) {
+  if (typeof text !== 'string') return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(err => {
+      console.warn('No se pudo copiar el comentario al portapapeles', err);
+    });
+    return;
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'absolute';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  const selection = document.getSelection();
+  let originalRange = null;
+  if (selection && selection.rangeCount > 0) {
+    originalRange = selection.getRangeAt(0);
+  }
+  textarea.select();
+  try { document.execCommand('copy'); }
+  catch (err) { console.warn('No se pudo copiar el comentario al portapapeles', err); }
+  document.body.removeChild(textarea);
+  if (originalRange && selection) {
+    selection.removeAllRanges();
+    selection.addRange(originalRange);
+  }
+}
+
+
 function buildJiraLink(task) {
   const base = (window.jiraConfig?.baseUrl || '').trim();
   if (!base || !task) return { url: '', label: '' };
@@ -197,8 +227,12 @@ function renderImputations() {
   list.forEach(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
     const minutes = rec.outDate ? Math.round(rec.totalMs / 60000) : 0;
-    const { url: jiraUrl, label: jiraLabel } = buildJiraLink(task);
-    const jiraLinkHtml = jiraUrl ? `<a href="${jiraUrl}" target="_blank" rel="noopener noreferrer" title="${jiraUrl}">${jiraLabel || jiraUrl}</a>` : '';
+
+    const commentText = rec.comments || "";
+    const jiraLinkHtml = jiraUrl
+      ? `<a href="${jiraUrl}" target="_blank" rel="noopener noreferrer" title="${jiraUrl}" data-role="jira-link">${jiraLabel || jiraUrl}</a>`
+      : '';
+
     const tr = document.createElement("tr");
     tr.dataset.id = rec.id;
     tr.innerHTML = `<td>${rec.date.toLocaleDateString()}</td>
@@ -212,8 +246,24 @@ function renderImputations() {
         <td>${rec.noFee ? "Sí" : "No"}</td>
         <td>${rec.isHoliday ? "Sí" : "No"}</td>
         <td>${rec.isVacation ? "Sí" : "No"}</td>
-        <td>${rec.comments || ""}</td>`;
+        <td data-role="comment-cell"></td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
+    const jiraAnchor = tr.querySelector('[data-role="jira-link"]');
+    if (jiraAnchor) {
+      jiraAnchor.addEventListener('click', () => copyTextToClipboard(rec.comments || ''));
+    }
+    const commentCell = tr.querySelector('[data-role="comment-cell"]');
+    if (commentCell && commentText) {
+      const commentButton = document.createElement('button');
+      commentButton.type = 'button';
+      commentButton.className = 'imputation-comment-link';
+      commentButton.textContent = commentText;
+      commentButton.title = 'Copiar comentario';
+      commentButton.addEventListener('click', () => copyTextToClipboard(commentText));
+      commentCell.appendChild(commentButton);
+    } else if (commentCell) {
+      commentCell.textContent = '';
+    }
     tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
     tr.addEventListener("dblclick", () => { openImputationModal(rec); });
     imputationsTableBody.appendChild(tr);
@@ -417,6 +467,11 @@ function openImputationModal(record = null) {
   const today = new Date();
 
   const noJiraText = i18n ? i18n.t('No disponible') : "No disponible";
+
+  if (jiraLinkEl) {
+    jiraLinkEl.addEventListener('click', () => copyTextToClipboard(commentsInput.value || ''));
+  }
+
 
   function updateJiraLink() {
     if (!jiraLinkEl) return;
