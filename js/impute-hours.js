@@ -209,7 +209,6 @@ function renderImputations() {
         <td>${minutes}</td>
         <td>${task ? task.subject : ""}</td>
         <td>${jiraLinkHtml}</td>
-        <td>${task ? task.clientTaskNo || "" : ""}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
         <td>${rec.isHoliday ? "Sí" : "No"}</td>
         <td>${rec.isVacation ? "Sí" : "No"}</td>
@@ -306,7 +305,7 @@ function exportImputationsCsv() {
     })
     .sort((a, b) => b.inDate - a.inDate);
   const esc = v => `"${String(v).replace(/"/g, '""')}"`;
-  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Enlace Jira', 'Nº tarea cliente', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
+  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Enlace Jira', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
   const rows = list.map(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
     const { url: jiraUrl } = buildJiraLink(task);
@@ -319,7 +318,6 @@ function exportImputationsCsv() {
       rec.outDate ? Math.round(rec.totalMs / 60000) : '0',
       task ? task.subject : '',
       jiraUrl || '',
-      task ? task.clientTaskNo || '' : '',
       rec.noFee ? i18n.t('Sí') : i18n.t('No'),
       rec.isHoliday ? i18n.t('Sí') : i18n.t('No'),
       rec.isVacation ? i18n.t('Sí') : i18n.t('No'),
