@@ -382,6 +382,15 @@ tbody tr.selected {
   background: #cfe8ff !important;
 }
 
+table td a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+table td a:hover {
+  text-decoration: underline;
+}
+
 #tasksTable th.select-col,
 #tasksTable td.select-cell {
   width: 48px;
@@ -539,6 +548,20 @@ tbody tr.selected {
   border-radius: 6px;
   font-size: .8rem;
   background: #f9fafb;
+}
+
+.modal .jira-link-field {
+  font-size: .8rem;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--primary);
+  word-break: break-all;
+}
+
+.modal .jira-link-field.disabled {
+  color: #999;
+  pointer-events: none;
+  text-decoration: none;
 }
 
 .task-duplicate-banner {
