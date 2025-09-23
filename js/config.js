@@ -1,6 +1,7 @@
 /*************** Configuración Supabase ****************/
 window.supabaseCreds = { url: '', key: '' };
 window.aiConfig = { key: '', model: '', lang: 'es' };
+window.jiraConfig = { baseUrl: '' };
 window.uiLang = 'es';
 let currentConfigBackdrop = null;
 
@@ -18,6 +19,11 @@ function loadAiConfig() {
   window.aiConfig.model = localStorage.getItem('aiModel') || '';
   window.aiConfig.lang = localStorage.getItem('aiLang') || 'es';
   document.dispatchEvent(new Event('aiConfigLoaded'));
+}
+
+function loadJiraConfig() {
+  window.jiraConfig.baseUrl = localStorage.getItem('jiraBaseUrl') || '';
+  document.dispatchEvent(new Event('jiraConfigLoaded'));
 }
 
 function loadUiLang() {
@@ -55,6 +61,7 @@ function openConfigPopup() {
       const aiModel = form.elements['aiModel'];
       const aiLang = form.elements['aiLang'];
       const uiLang = form.elements['uiLang'];
+      const jiraBaseUrl = form.elements['jiraBaseUrl'];
 
       function updateFields() {
         const env = envSel.value;
@@ -82,6 +89,7 @@ function openConfigPopup() {
       aiModel.value = localStorage.getItem('aiModel') || '';
       aiLang.value = localStorage.getItem('aiLang') || 'es';
       uiLang.value = localStorage.getItem('uiLang') || 'es';
+      jiraBaseUrl.value = localStorage.getItem('jiraBaseUrl') || '';
 
       function closePopup() {
         backdrop.remove();
@@ -104,6 +112,7 @@ function openConfigPopup() {
         const aiM = aiModel.value.trim();
         const aiL = aiLang.value;
         const uiL = uiLang.value;
+        const jiraUrl = jiraBaseUrl.value.trim();
 
         if (env === 'real' && (!urlR || !keyR)) {
           alert(i18n.t('Debe introducir URL y KEY de Real'));
@@ -123,9 +132,11 @@ function openConfigPopup() {
         if (aiM) localStorage.setItem('aiModel', aiM); else localStorage.removeItem('aiModel');
         localStorage.setItem('aiLang', aiL);
         localStorage.setItem('uiLang', uiL);
+        if (jiraUrl) localStorage.setItem('jiraBaseUrl', jiraUrl); else localStorage.removeItem('jiraBaseUrl');
 
         loadSupabaseCreds();
         loadAiConfig();
+        loadJiraConfig();
         loadUiLang();
         document.dispatchEvent(new Event('configSaved'));
         closePopup();
@@ -150,6 +161,6 @@ function updateEnvLabel() {
     label.classList.remove('test');
   }
 }
-document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
-document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); loadUiLang(); updateEnvLabel(); });
+document.addEventListener('DOMContentLoaded', () => { loadSupabaseCreds(); loadAiConfig(); loadJiraConfig(); loadUiLang(); updateEnvLabel(); });
+document.addEventListener('configSaved', () => { loadSupabaseCreds(); loadAiConfig(); loadJiraConfig(); loadUiLang(); updateEnvLabel(); });
 window.updateEnvLabel = updateEnvLabel;

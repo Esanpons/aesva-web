@@ -99,6 +99,7 @@
                                 <th>Decimal</th>
                                 <th>Minutos</th>
                                 <th>Tarea</th>
+                                <th>Jira</th>
                                 <th>Nº tarea cliente</th>
                                 <th>No Fee</th>
                                 <th>Festivo</th>
@@ -139,8 +140,14 @@
                     <label>Hora salida
                         <input type="time" name="outTime" step="900" />
                     </label>
+                    <label>Minutos calculados
+                        <input type="text" name="totalMinutes" data-role="minutes" readonly />
+                    </label>
                     <label>Tarea
                         <input name="taskId" list="taskOptions" />
+                    </label>
+                    <label class="full">Enlace Jira
+                        <a class="jira-link-field" data-role="jira-link" rel="noopener noreferrer" target="_blank">No disponible</a>
                     </label>
                     <label class="check"><input type="checkbox" name="noFee" /> No Fee</label>
                     <label class="full">Comentarios
