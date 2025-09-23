@@ -31,6 +31,20 @@ const round15 = d => { const ms = 15 * 60 * 1000; return new Date(Math.round(d.g
 const round2 = v => Math.round(v * 100 + Number.EPSILON) / 100;
 const sameDay = (a, b) => a.getDate() == b.getDate() && a.getMonth() == b.getMonth() && a.getFullYear() == b.getFullYear();
 
+function buildJiraLink(task) {
+  const base = (window.jiraConfig?.baseUrl || '').trim();
+  if (!base || !task) return { url: '', label: '' };
+  const label = (task.clientTaskNo || task.subject || '').trim();
+  if (!label) return { url: '', label: '' };
+  const encodedLabel = encodeURIComponent(label);
+  let url = base;
+  if (url && !url.endsWith('/') && !url.includes('?') && !url.includes('#') && !encodedLabel.startsWith('/')) {
+    url += '/';
+  }
+  url += encodedLabel;
+  return { url, label };
+}
+
 /*************** Control de fichaje ****************/
 let isWorking = false, sessionStart = null, sessionTaskId = "";
 const tiempoTotalEl = document.getElementById("TiempoTotalTrabajado");
@@ -182,6 +196,9 @@ function renderImputations() {
   if (selectedImputationId === null && list.length) selectedImputationId = list[0].id;
   list.forEach(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
+    const minutes = rec.outDate ? Math.round(rec.totalMs / 60000) : 0;
+    const { url: jiraUrl, label: jiraLabel } = buildJiraLink(task);
+    const jiraLinkHtml = jiraUrl ? `<a href="${jiraUrl}" target="_blank" rel="noopener noreferrer" title="${jiraUrl}">${jiraLabel || jiraUrl}</a>` : '';
     const tr = document.createElement("tr");
     tr.dataset.id = rec.id;
     tr.innerHTML = `<td>${rec.date.toLocaleDateString()}</td>
@@ -189,9 +206,9 @@ function renderImputations() {
         <td>${rec.outDate ? fmtClock(rec.outDate) : ""}</td>
         <td>${rec.outDate ? fmtTime(rec.totalMs) : "00:00:00"}</td>
         <td>${rec.outDate ? rec.totalDecimal.toFixed(2) : "0.00"}</td>
-        <td>${rec.outDate ? Math.round(rec.totalMs / 60000) : "0"}</td>
+        <td>${minutes}</td>
         <td>${task ? task.subject : ""}</td>
-        <td>${task ? task.clientTaskNo || "" : ""}</td>
+        <td>${jiraLinkHtml}</td>
         <td>${rec.noFee ? "Sí" : "No"}</td>
         <td>${rec.isHoliday ? "Sí" : "No"}</td>
         <td>${rec.isVacation ? "Sí" : "No"}</td>
@@ -288,9 +305,10 @@ function exportImputationsCsv() {
     })
     .sort((a, b) => b.inDate - a.inDate);
   const esc = v => `"${String(v).replace(/"/g, '""')}"`;
-  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Nº tarea cliente', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
+  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Enlace Jira', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
   const rows = list.map(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
+    const { url: jiraUrl } = buildJiraLink(task);
     return [
       formatInputDate(rec.date),
       formatInputTime(rec.inDate),
@@ -299,7 +317,7 @@ function exportImputationsCsv() {
       rec.outDate ? rec.totalDecimal.toFixed(2) : '0.00',
       rec.outDate ? Math.round(rec.totalMs / 60000) : '0',
       task ? task.subject : '',
-      task ? task.clientTaskNo || '' : '',
+      jiraUrl || '',
       rec.noFee ? i18n.t('Sí') : i18n.t('No'),
       rec.isHoliday ? i18n.t('Sí') : i18n.t('No'),
       rec.isVacation ? i18n.t('Sí') : i18n.t('No'),
@@ -394,7 +412,43 @@ function openImputationModal(record = null) {
   const taskSel = form.elements["taskId"];
   const commentsInput = form.elements["comments"];
   const noFeeChk = form.elements["noFee"];
+  const jiraLinkEl = form.querySelector('[data-role="jira-link"]');
+  const minutesInput = form.querySelector('[data-role="minutes"]');
   const today = new Date();
+
+  const noJiraText = i18n ? i18n.t('No disponible') : "No disponible";
+
+  function updateJiraLink() {
+    if (!jiraLinkEl) return;
+    const task = tasks.find(tt => tt.id == taskSel.dataset.id);
+    const { url, label } = buildJiraLink(task);
+    if (url) {
+      jiraLinkEl.textContent = label || url;
+      jiraLinkEl.href = url;
+      jiraLinkEl.title = url;
+      jiraLinkEl.classList.remove('disabled');
+    } else {
+      jiraLinkEl.textContent = noJiraText;
+      jiraLinkEl.removeAttribute('href');
+      jiraLinkEl.removeAttribute('title');
+      jiraLinkEl.classList.add('disabled');
+    }
+  }
+
+  function updateMinutesField() {
+    if (!minutesInput) return;
+    const dateValue = form.elements["date"].value;
+    const inVal = form.elements["inTime"].value;
+    const outVal = form.elements["outTime"].value;
+    if (dateValue && inVal && outVal) {
+      const inDate = parseDT(dateValue, inVal);
+      const outDate = parseDT(dateValue, outVal);
+      const diff = outDate - inDate;
+      minutesInput.value = diff > 0 ? Math.round(diff / 60000) : 0;
+    } else {
+      minutesInput.value = 0;
+    }
+  }
 
   if (record) {
     backdrop.querySelector(".modal-title").textContent = "Editar imputación";
@@ -418,6 +472,9 @@ function openImputationModal(record = null) {
     taskSel.dataset.prev = '';
   }
 
+  updateMinutesField();
+  updateJiraLink();
+
   taskSel.addEventListener("input", () => {
     taskSel.dataset.id = selectedTaskIdFromInput(taskSel);
     const t = tasks.find(tt => tt.id == taskSel.dataset.id);
@@ -425,9 +482,14 @@ function openImputationModal(record = null) {
       if (!commentsInput.value.trim()) { commentsInput.value = t.taskDescription || ""; }
       if (!record) { noFeeChk.checked = noFeeChk.checked || !!t.noCharge; }
     }
+    updateJiraLink();
   });
   taskSel.addEventListener('focus', () => { taskSel.dataset.prev = taskSel.value; });
   taskSel.addEventListener('blur', () => { validateTaskInput(taskSel); });
+
+  form.elements["inTime"].addEventListener('input', updateMinutesField);
+  form.elements["outTime"].addEventListener('input', updateMinutesField);
+  form.elements["date"].addEventListener('change', updateMinutesField);
 
   function closeModal() {
     backdrop.remove();
