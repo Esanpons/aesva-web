@@ -227,6 +227,7 @@ function renderImputations() {
     const task = tasks.find(t => t.id == rec.taskId);
     const minutes = rec.outDate ? Math.round(rec.totalMs / 60000) : 0;
     const { url: jiraUrl, label: jiraLabel } = buildJiraLink(task);
+    const commentText = rec.comments || "";
     const jiraLinkHtml = jiraUrl
       ? `<a href="${jiraUrl}" target="_blank" rel="noopener noreferrer" title="${jiraUrl}" data-role="jira-link">${jiraLabel || jiraUrl}</a>`
       : '';
@@ -243,11 +244,23 @@ function renderImputations() {
         <td>${rec.noFee ? "Sí" : "No"}</td>
         <td>${rec.isHoliday ? "Sí" : "No"}</td>
         <td>${rec.isVacation ? "Sí" : "No"}</td>
-        <td>${rec.comments || ""}</td>`;
+        <td data-role="comment-cell"></td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
     const jiraAnchor = tr.querySelector('[data-role="jira-link"]');
     if (jiraAnchor) {
       jiraAnchor.addEventListener('click', () => copyTextToClipboard(rec.comments || ''));
+    }
+    const commentCell = tr.querySelector('[data-role="comment-cell"]');
+    if (commentCell && commentText) {
+      const commentButton = document.createElement('button');
+      commentButton.type = 'button';
+      commentButton.className = 'imputation-comment-link';
+      commentButton.textContent = commentText;
+      commentButton.title = 'Copiar comentario';
+      commentButton.addEventListener('click', () => copyTextToClipboard(commentText));
+      commentCell.appendChild(commentButton);
+    } else if (commentCell) {
+      commentCell.textContent = '';
     }
     tr.addEventListener("click", () => { selectedImputationId = rec.id; renderImputations(); });
     tr.addEventListener("dblclick", () => { openImputationModal(rec); });
