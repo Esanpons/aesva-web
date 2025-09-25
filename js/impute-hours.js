@@ -245,11 +245,11 @@ function renderImputations() {
         <td>${rec.outDate ? rec.totalDecimal.toFixed(2) : "0.00"}</td>
         <td>${minutes}</td>
         <td>${task ? task.subject : ""}</td>
-        <td>${jiraLinkHtml}</td>
-        <td>${rec.noFee ? "Sí" : "No"}</td>
-        <td>${rec.isHoliday ? "Sí" : "No"}</td>
-        <td>${rec.isVacation ? "Sí" : "No"}</td>
-        <td data-role="comment-cell"></td>`;
+        <td class="col-compact">${rec.noFee ? "Sí" : "No"}</td>
+        <td class="col-compact">${rec.isHoliday ? "Sí" : "No"}</td>
+        <td class="col-compact">${rec.isVacation ? "Sí" : "No"}</td>
+        <td class="col-comments" data-role="comment-cell"></td>
+        <td class="col-jira">${jiraLinkHtml}</td>`;
     if (rec.id === selectedImputationId) tr.classList.add("selected");
     const jiraAnchor = tr.querySelector('[data-role="jira-link"]');
     if (jiraAnchor) {
@@ -358,7 +358,7 @@ function exportImputationsCsv() {
     })
     .sort((a, b) => b.inDate - a.inDate);
   const esc = v => `"${String(v).replace(/"/g, '""')}"`;
-  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'Enlace Jira', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios'].join(';');
+  const header = ['Fecha', 'Entrada', 'Salida', 'Total', 'Decimal', 'Minutos', 'Tarea', 'No Fee', 'Festivo', 'Vacaciones', 'Comentarios', 'Enlace Jira'].join(';');
   const rows = list.map(rec => {
     const task = tasks.find(t => t.id == rec.taskId);
 
@@ -373,11 +373,11 @@ function exportImputationsCsv() {
       rec.outDate ? rec.totalDecimal.toFixed(2) : '0.00',
       rec.outDate ? Math.round(rec.totalMs / 60000) : '0',
       task ? task.subject : '',
-      jiraUrl || '',
       rec.noFee ? i18n.t('Sí') : i18n.t('No'),
       rec.isHoliday ? i18n.t('Sí') : i18n.t('No'),
       rec.isVacation ? i18n.t('Sí') : i18n.t('No'),
-      rec.comments || ''
+      rec.comments || '',
+      jiraUrl || ''
     ].map(esc).join(';');
   });
   const csv = [header, ...rows].join('\n');

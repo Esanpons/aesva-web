@@ -356,6 +356,33 @@ table {
   font-size: .75rem;
 }
 
+#imputationsTable th.col-compact,
+#imputationsTable td.col-compact {
+  width: 70px;
+  white-space: nowrap;
+}
+
+#imputationsTable th.col-comments,
+#imputationsTable td.col-comments {
+  width: 240px;
+  text-align: left;
+}
+
+#imputationsTable th.col-jira,
+#imputationsTable td.col-jira {
+  width: 200px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#imputationsTable td.col-jira a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 thead {
   background: var(--primary);
   color: #fff;
