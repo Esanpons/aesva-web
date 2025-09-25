@@ -238,13 +238,13 @@ function renderImputations() {
 
     const tr = document.createElement("tr");
     tr.dataset.id = rec.id;
-    tr.innerHTML = `<td>${rec.date.toLocaleDateString()}</td>
-        <td>${fmtClock(rec.inDate)}</td>
-        <td>${rec.outDate ? fmtClock(rec.outDate) : ""}</td>
-        <td>${rec.outDate ? fmtTime(rec.totalMs) : "00:00:00"}</td>
-        <td>${rec.outDate ? rec.totalDecimal.toFixed(2) : "0.00"}</td>
-        <td>${minutes}</td>
-        <td>${task ? task.subject : ""}</td>
+    tr.innerHTML = `<td class="col-date">${rec.date.toLocaleDateString()}</td>
+        <td class="col-time">${fmtClock(rec.inDate)}</td>
+        <td class="col-time">${rec.outDate ? fmtClock(rec.outDate) : ""}</td>
+        <td class="col-tight">${rec.outDate ? fmtTime(rec.totalMs) : "00:00:00"}</td>
+        <td class="col-tight">${rec.outDate ? rec.totalDecimal.toFixed(2) : "0.00"}</td>
+        <td class="col-tight">${minutes}</td>
+        <td class="col-task">${task ? task.subject : ""}</td>
         <td class="col-compact">${rec.noFee ? "Sí" : "No"}</td>
         <td class="col-compact">${rec.isHoliday ? "Sí" : "No"}</td>
         <td class="col-compact">${rec.isVacation ? "Sí" : "No"}</td>
