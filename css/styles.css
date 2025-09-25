@@ -356,6 +356,57 @@ table {
   font-size: .75rem;
 }
 
+#imputationsTable th.col-date,
+#imputationsTable td.col-date {
+  width: 105px;
+  white-space: nowrap;
+}
+
+#imputationsTable th.col-time,
+#imputationsTable td.col-time {
+  width: 90px;
+  white-space: nowrap;
+}
+
+#imputationsTable th.col-tight,
+#imputationsTable td.col-tight {
+  width: 80px;
+  white-space: nowrap;
+}
+
+#imputationsTable th.col-compact,
+#imputationsTable td.col-compact {
+  width: 60px;
+  white-space: nowrap;
+}
+
+#imputationsTable th.col-task,
+#imputationsTable td.col-task {
+  width: 280px;
+  text-align: left;
+}
+
+#imputationsTable th.col-comments,
+#imputationsTable td.col-comments {
+  width: 220px;
+  text-align: left;
+}
+
+#imputationsTable th.col-jira,
+#imputationsTable td.col-jira {
+  width: 170px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#imputationsTable td.col-jira a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 thead {
   background: var(--primary);
   color: #fff;
@@ -363,7 +414,7 @@ thead {
 
 th,
 td {
-  padding: .55rem .6rem;
+  padding: .45rem .55rem;
   border-bottom: 1px solid var(--border);
   text-align: center;
   vertical-align: middle;
