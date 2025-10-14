@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Resumen factura</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+</head>
+<body>
+    <template id="invoiceExtrasModalTmpl">
+        <div class="modal-backdrop">
+            <div class="modal invoice-extras-modal">
+                <header>
+                    <span class="modal-title">Resumen económico factura</span>
+                    <button class="close" type="button">×</button>
+                </header>
+                <form id="invoiceExtrasForm">
+                    <div class="invoice-extras-summary full">
+                        <div><span>Nº factura</span><strong id="extrasInvoiceNo"></strong></div>
+                        <div><span>Importe sin IVA a cobrar</span><strong data-field="base"></strong></div>
+                        <div><span>Importe de IVA</span><strong data-field="vat"></strong></div>
+                        <div><span>Importe de IRPF</span><strong data-field="irpf"></strong></div>
+                        <div><span>Importe de IRPF extra</span><strong data-field="irpfExtra"></strong></div>
+                        <div><span>Importe limpio</span><strong data-field="net"></strong></div>
+                        <div><span>Importe Diezmo</span><strong data-field="tithe"></strong></div>
+                    </div>
+                    <label>IRPF extra %
+                        <input type="number" step="0.01" name="irpfExtraPercent" />
+                    </label>
+                    <label>Importe autónomos
+                        <input type="number" step="0.01" name="importeAutonomos" />
+                    </label>
+                    <label>% diezmo
+                        <input type="number" step="0.01" name="diezmoPercent" />
+                    </label>
+                    <label>Importe nómina
+                        <input type="number" step="0.01" name="nominaAmount" />
+                    </label>
+                    <label>Ofrenda sueldo
+                        <input type="number" step="0.01" name="ofrendaSueldo" />
+                    </label>
+                    <label>Oficina
+                        <input type="number" step="0.01" name="oficinaAmount" />
+                    </label>
+                    <label>Gestor
+                        <input type="number" step="0.01" name="gestorAmount" />
+                    </label>
+                    <footer class="full">
+                        <div class="extras-footer-actions">
+                            <button type="submit" class="Buttons primary">Guardar</button>
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </div>
+    </template>
+</body>
+</html>

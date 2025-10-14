@@ -19,6 +19,7 @@
                 <button class="Buttons" id="BtnAddInvoice" type="button">+ Nueva factura</button>
                 <button class="Buttons primary" id="BtnEditInvoice" type="button" disabled>Editar</button>
                 <button class="Buttons" id="BtnDelInvoice" type="button" disabled>Eliminar</button>
+                <button class="Buttons" id="BtnExtrasInvoice" type="button" disabled>Resumen económico</button>
                 <button class="Buttons" id="BtnPrintInv" type="button" disabled>Imprimir</button>
             </div>
             <label>Año <select id="invoiceYearFilter"></select></label>
@@ -86,6 +87,7 @@
                         <footer class="full">
                             <div id="invoiceTotals"></div>
                             <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+                                <button type="button" id="BtnInvoiceExtras" class="Buttons">Resumen económico</button>
                                 <button type="button" id="BtnPrintInvoice" class="Buttons">Imprimir</button>
                                 <button type="submit" class="Buttons primary">Guardar</button>
                             </div>

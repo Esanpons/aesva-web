@@ -20,6 +20,126 @@ function invoiceTotal(inv) {
   return invoiceBreakdown(inv).total;
 }
 
+function numberOrZero(value) {
+  const num = parseFloat(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+async function openInvoiceExtrasModal(invoice, onSaved = null) {
+  if (!invoice) return;
+  const html = await fetch('html/invoice-extras.html').then(r => r.text());
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const tmpl = doc.getElementById('invoiceExtrasModalTmpl');
+  if (!tmpl) return;
+  if (window.i18n) i18n.apply(tmpl.content);
+  const clone = tmpl.content.cloneNode(true);
+  const bd = clone.querySelector('.modal-backdrop');
+  const modal = clone.querySelector('.modal');
+  const form = clone.querySelector('#invoiceExtrasForm');
+  const summary = clone.querySelector('.invoice-extras-summary');
+  const invoiceNoEl = clone.querySelector('#extrasInvoiceNo');
+  const summaryFields = {
+    base: summary.querySelector('[data-field="base"]'),
+    vat: summary.querySelector('[data-field="vat"]'),
+    irpf: summary.querySelector('[data-field="irpf"]'),
+    irpfExtra: summary.querySelector('[data-field="irpfExtra"]'),
+    net: summary.querySelector('[data-field="net"]'),
+    tithe: summary.querySelector('[data-field="tithe"]')
+  };
+
+  const breakdown = invoiceBreakdown(invoice);
+  const baseAmount = breakdown.base;
+  const vatAmount = breakdown.vat;
+  const irpfAmount = breakdown.irpf;
+
+  invoiceNoEl.textContent = invoice.no || '';
+
+  const defaults = {
+    irpfExtraPercent: invoice.irpfExtraPercent ?? company.incomeAmount ?? 0,
+    importeAutonomos: invoice.importeAutonomos ?? company.amountAutonomos ?? 0,
+    diezmoPercent: invoice.diezmoPercent ?? company.tithePercent ?? 0,
+    nominaAmount: invoice.nominaAmount ?? company.amountNomina ?? 0,
+    ofrendaSueldo: invoice.ofrendaSueldo ?? 0,
+    oficinaAmount: invoice.oficinaAmount ?? 0,
+    gestorAmount: invoice.gestorAmount ?? 0
+  };
+
+  Object.entries(defaults).forEach(([name, value]) => {
+    if (form.elements[name]) form.elements[name].value = Number.isFinite(Number(value)) ? (Math.round(Number(value) * 100) / 100).toFixed(2) : '';
+  });
+
+  function formatAmount(value) {
+    return (Number.isFinite(value) ? value : 0).toFixed(2);
+  }
+
+  function parseInput(name) {
+    return numberOrZero(form.elements[name] ? form.elements[name].value : 0);
+  }
+
+  function updateSummary() {
+    const irpfExtraPercent = parseInput('irpfExtraPercent');
+    const importeAutonomos = parseInput('importeAutonomos');
+    const diezmoPercent = parseInput('diezmoPercent');
+    const ofrendaSueldo = parseInput('ofrendaSueldo');
+    const irpfExtraAmount = round2(baseAmount * irpfExtraPercent / 100);
+    const importeLimpio = round2(baseAmount - irpfAmount - irpfExtraAmount - importeAutonomos);
+    const importeDiezmo = round2(importeLimpio * diezmoPercent / 100 + ofrendaSueldo);
+    summaryFields.base.textContent = formatAmount(baseAmount);
+    summaryFields.vat.textContent = formatAmount(vatAmount);
+    summaryFields.irpf.textContent = formatAmount(irpfAmount);
+    summaryFields.irpfExtra.textContent = formatAmount(irpfExtraAmount);
+    summaryFields.net.textContent = formatAmount(importeLimpio);
+    summaryFields.tithe.textContent = formatAmount(importeDiezmo);
+  }
+
+  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'ofrendaSueldo'].forEach(name => {
+    if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
+  });
+
+  updateSummary();
+
+  function closeModal() {
+    document.removeEventListener('keydown', handleEsc, true);
+    bd.remove();
+  }
+
+  function handleEsc(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeModal();
+    }
+  }
+
+  document.addEventListener('keydown', handleEsc, true);
+  bd.querySelector('.close').addEventListener('click', closeModal);
+  bd.addEventListener('click', e => { if (e.target === bd) closeModal(); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const payload = sanitizeStrings({
+      irpfExtraPercent: round2(parseInput('irpfExtraPercent')),
+      importeAutonomos: round2(parseInput('importeAutonomos')),
+      diezmoPercent: round2(parseInput('diezmoPercent')),
+      nominaAmount: round2(parseInput('nominaAmount')),
+      ofrendaSueldo: round2(parseInput('ofrendaSueldo')),
+      oficinaAmount: round2(parseInput('oficinaAmount')),
+      gestorAmount: round2(parseInput('gestorAmount'))
+    });
+    try {
+      await db.update('invoices', { no: invoice.no }, payload);
+      Object.assign(invoice, payload);
+      if (typeof onSaved === 'function') onSaved(payload);
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert(i18n.t ? i18n.t('Error al guardar los datos') : 'Error al guardar los datos');
+    }
+  });
+
+  document.body.appendChild(clone);
+  if (modal) modal.focus?.();
+}
+
 function incrementInvoiceNumber(no) {
   const m = /^(\d{4}-)(\d+)$/.exec(no);
   if (!m) return no;
@@ -68,6 +188,7 @@ function openInvoicesPopup() {
       const btnAdd = bd.querySelector('#BtnAddInvoice');
       const btnEdit = bd.querySelector('#BtnEditInvoice');
       const btnDel = bd.querySelector('#BtnDelInvoice');
+      const btnExtrasList = bd.querySelector('#BtnExtrasInvoice');
       const btnPrintList = bd.querySelector('#BtnPrintInv');
       const yearSel = bd.querySelector('#invoiceYearFilter');
       const closeBtn = bd.querySelector('.close');
@@ -102,6 +223,7 @@ function openInvoicesPopup() {
         btnEdit.disabled = !has;
         btnDel.disabled = !has || (inv && inv.paid);
         btnPrintList.disabled = !has;
+        if (btnExtrasList) btnExtrasList.disabled = !has;
       }
 
       function render() {
@@ -153,6 +275,13 @@ function openInvoicesPopup() {
         const inv = invoices.find(i => i.no === selectedNo);
         if (inv) printInvoice(inv);
       });
+      if (btnExtrasList) {
+        btnExtrasList.addEventListener('click', () => {
+          if (!selectedNo) return;
+          const inv = invoices.find(i => i.no === selectedNo);
+          if (inv) openInvoiceExtrasModal(inv, () => render());
+        });
+      }
       yearSel.addEventListener('change', render);
       closeBtn.addEventListener('click', closePopup);
 
@@ -175,6 +304,7 @@ function openInvoiceModal(invoice = null, onSave) {
   const totalsDiv = clone.querySelector('#invoiceTotals');
   const totalSpan = clone.querySelector('#invoiceTotal');
   const btnPrint = clone.querySelector('#BtnPrintInvoice');
+  const btnExtrasModal = clone.querySelector('#BtnInvoiceExtras');
   const btnSave = form.querySelector('button[type="submit"]');
   const paidChk = form.elements['paid'];
   const linesPerPageInput = form.elements['arrayLinesInvoicePrint'];
@@ -241,6 +371,7 @@ function openInvoiceModal(invoice = null, onSave) {
     btnAddLine.disabled = locked;
     btnDelLine.disabled = selectedLine === null || locked;
     btnImport.disabled = locked;
+    if (btnExtrasModal) btnExtrasModal.disabled = locked || !invoice;
     updateTotal();
   }
 
@@ -331,6 +462,24 @@ function openInvoiceModal(invoice = null, onSave) {
   btnPrint.addEventListener('click', () => {
     printInvoice(collectData());
   });
+
+  if (btnExtrasModal) {
+    btnExtrasModal.disabled = !invoice;
+    btnExtrasModal.addEventListener('click', () => {
+      if (!invoice) {
+        alert(i18n.t('Guarda la factura antes de editar el resumen económico'));
+        return;
+      }
+      const currentData = collectData();
+      if (!currentData) return;
+      if (currentData.no !== invoice.no) {
+        alert(i18n.t('Guarda la factura antes de editar el resumen económico'));
+        return;
+      }
+      const invData = { ...invoice, ...currentData };
+      openInvoiceExtrasModal(invData, payload => { Object.assign(invoice, payload); });
+    });
+  }
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
