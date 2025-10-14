@@ -30,6 +30,7 @@ function openCompanyCalcPopup() {
       f.amountAutonomos.value = company.amountAutonomos || 0;
       f.amountNomina.value = company.amountNomina || 0;
       f.incomeAmount.value = company.incomeAmount || 0;
+      if (f.irpfExtraAmount) f.irpfExtraAmount.value = '0.00';
       f.extraAmounts.value = company.extraAmounts || 0;
 
       // populate customers select
@@ -64,17 +65,19 @@ function openCompanyCalcPopup() {
         const irpf = parseFloat(f.irpf.value) || 0;
         const autonomos = parseFloat(f.amountAutonomos.value) || 0;
         const nomina = parseFloat(f.amountNomina.value) || 0;
-        const renta = parseFloat(f.incomeAmount.value) || 0;
+        const extraIrpfPercent = parseFloat(f.incomeAmount.value) || 0;
         const extras = parseFloat(f.extraAmounts.value) || 0;
         const pending = minHours * price;
         const vatAmount = pending * vat / 100;
         const irpfAmount = pending * irpf / 100;
+        const extraIrpfAmount = pending * extraIrpfPercent / 100;
         const delmeBase = pending - irpfAmount - autonomos;
         const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
-        const result = pending - (irpfAmount + autonomos + delme + nomina + renta + extras);
+        const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
         f.pending.value = pending.toFixed(2);
         f.vatAmount.value = vatAmount.toFixed(2);
         f.irpfAmount.value = irpfAmount.toFixed(2);
+        if (f.irpfExtraAmount) f.irpfExtraAmount.value = extraIrpfAmount.toFixed(2);
         f.tithe.value = delme.toFixed(2);
         f.result.value = result.toFixed(2);
       }
@@ -107,11 +110,12 @@ function calculateClientHoursResult(clientNo, hours) {
   const delmeBase = pending - irpfAmount - autonomos;
   const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
   const nomina = company.amountNomina || 0;
-  const renta = company.incomeAmount || 0;
+  const extraIrpfPercent = company.incomeAmount || 0;
+  const extraIrpfAmount = pending * extraIrpfPercent / 100;
   const extras = company.extraAmounts || 0;
-  const result = pending - (irpfAmount + autonomos + delme + nomina + renta + extras);
+  const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
   return {
-    pending, vatAmount, irpfAmount, delme, result
+    pending, vatAmount, irpfAmount, extraIrpfAmount, delme, result
   };
 }
 
