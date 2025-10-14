@@ -256,6 +256,25 @@ function openTaskModal(task = null, onSave, options = {}) {
     data.completed = form.elements["completed"].checked;
     data.id = Number(form.elements["id"].value);
     await applyAiCorrection('tasks', data, task || {});
+
+    const clientTaskNo = (data.clientTaskNo ?? '').toString().trim();
+    let duplicateWarning = null;
+    if (clientTaskNo) {
+      const duplicates = tasks.filter(t => {
+        const existing = (t.clientTaskNo ?? '').toString().trim();
+        if (!existing) return false;
+        if (task && t.id === task.id) return false;
+        return existing === clientTaskNo;
+      });
+      if (duplicates.length) {
+        const baseMsg = window.i18n ? i18n.t('Hay varias tareas con este Nº de tarea cliente.') : 'Hay varias tareas con este Nº de tarea cliente.';
+        const numberLabel = window.i18n ? i18n.t('Nº tarea cliente') : 'Nº tarea cliente';
+        const othersLabel = window.i18n ? i18n.t('Otras tareas con este número:') : 'Otras tareas con este número:';
+        const ids = duplicates.map(t => t.id).join(', ');
+        duplicateWarning = `${baseMsg}\n${numberLabel}: ${clientTaskNo}`;
+        if (ids) duplicateWarning += `\n${othersLabel} ${ids}`;
+      }
+    }
     let savedId;
     try {
       if (task) {
@@ -266,6 +285,7 @@ function openTaskModal(task = null, onSave, options = {}) {
         savedId = data.id;
       }
       await loadFromDb();
+      if (duplicateWarning) alert(duplicateWarning);
       backdrop.remove();
       if (onSave) onSave(savedId);
       loadTasksInSelects();
