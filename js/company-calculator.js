@@ -71,7 +71,8 @@ function openCompanyCalcPopup() {
         const vatAmount = pending * vat / 100;
         const irpfAmount = pending * irpf / 100;
         const extraIrpfAmount = pending * extraIrpfPercent / 100;
-        const delmeBase = pending - irpfAmount - autonomos;
+        const netBeforeTithe = pending - irpfAmount - extraIrpfAmount - autonomos;
+        const delmeBase = Math.max(netBeforeTithe, 0);
         const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
         const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
         f.pending.value = pending.toFixed(2);
@@ -107,11 +108,12 @@ function calculateClientHoursResult(clientNo, hours) {
   const vatAmount = pending * vat / 100;
   const irpfAmount = pending * irpf / 100;
   const autonomos = company.amountAutonomos || 0;
-  const delmeBase = pending - irpfAmount - autonomos;
-  const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
   const nomina = company.amountNomina || 0;
   const extraIrpfPercent = company.incomeAmount || 0;
   const extraIrpfAmount = pending * extraIrpfPercent / 100;
+  const netBeforeTithe = pending - irpfAmount - extraIrpfAmount - autonomos;
+  const delmeBase = Math.max(netBeforeTithe, 0);
+  const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
   const extras = company.extraAmounts || 0;
   const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
   return {
