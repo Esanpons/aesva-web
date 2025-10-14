@@ -5,7 +5,8 @@ document.getElementById("btnInvoices").addEventListener("click", openInvoicesPop
 
 function invoiceBreakdown(inv) {
   const priceHour = inv.priceHour || 0;
-  const base = inv.lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * priceHour, 0);
+  const lines = Array.isArray(inv.lines) ? inv.lines : [];
+  const base = lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * priceHour, 0);
   const vat = base * (inv.vat || 0) / 100;
   const irpf = base * (inv.irpf || 0) / 100;
   return {
@@ -38,21 +39,22 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
   const form = clone.querySelector('#invoiceExtrasForm');
   const summary = clone.querySelector('.invoice-extras-summary');
   const invoiceNoEl = clone.querySelector('#extrasInvoiceNo');
-  const summaryFields = {
-    base: summary.querySelector('[data-field="base"]'),
-    vat: summary.querySelector('[data-field="vat"]'),
-    irpf: summary.querySelector('[data-field="irpf"]'),
-    irpfExtra: summary.querySelector('[data-field="irpfExtra"]'),
-    net: summary.querySelector('[data-field="net"]'),
-    tithe: summary.querySelector('[data-field="tithe"]')
-  };
+  const summaryFields = {};
+  summary?.querySelectorAll('[data-field]').forEach(el => {
+    const field = el.dataset.field;
+    if (!summaryFields[field]) summaryFields[field] = [];
+    summaryFields[field].push(el);
+  });
 
   const breakdown = invoiceBreakdown(invoice);
   const baseAmount = breakdown.base;
   const vatAmount = breakdown.vat;
   const irpfAmount = breakdown.irpf;
+  const totalAmount = breakdown.total;
+  const invoiceLines = Array.isArray(invoice.lines) ? invoice.lines : [];
+  const hoursWorked = round2(invoiceLines.reduce((sum, line) => sum + numberOrZero(line.qty), 0));
 
-  invoiceNoEl.textContent = invoice.no || '';
+  if (invoiceNoEl) invoiceNoEl.textContent = invoice.no || '';
 
   const defaults = {
     irpfExtraPercent: invoice.irpfExtraPercent ?? company.incomeAmount ?? 0,
@@ -68,8 +70,32 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     if (form.elements[name]) form.elements[name].value = Number.isFinite(Number(value)) ? (Math.round(Number(value) * 100) / 100).toFixed(2) : '';
   });
 
+  const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   function formatAmount(value) {
-    return (Number.isFinite(value) ? value : 0).toFixed(2);
+    const numeric = Number.isFinite(value) ? value : 0;
+    return amountFormatter.format(numeric);
+  }
+
+  function setAmount(field, value, tone = 'neutral') {
+    const nodes = summaryFields[field] || [];
+    const numeric = Number.isFinite(value) ? value : 0;
+    const classes = ['extras-amount-negative', 'extras-amount-positive', 'extras-amount-neutral'];
+    nodes.forEach(node => {
+      node.textContent = formatAmount(numeric);
+      node.classList.remove(...classes);
+      if (tone === 'auto') {
+        if (numeric < 0) node.classList.add('extras-amount-negative');
+        else if (numeric > 0) node.classList.add('extras-amount-positive');
+        else node.classList.add('extras-amount-neutral');
+      } else if (tone === 'negative') {
+        node.classList.add('extras-amount-negative');
+      } else if (tone === 'positive') {
+        node.classList.add('extras-amount-positive');
+      } else {
+        node.classList.add('extras-amount-neutral');
+      }
+    });
   }
 
   function parseInput(name) {
@@ -80,19 +106,44 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     const irpfExtraPercent = parseInput('irpfExtraPercent');
     const importeAutonomos = parseInput('importeAutonomos');
     const diezmoPercent = parseInput('diezmoPercent');
+    const nominaAmount = parseInput('nominaAmount');
     const ofrendaSueldo = parseInput('ofrendaSueldo');
+    const oficinaAmount = parseInput('oficinaAmount');
+    const gestorAmount = parseInput('gestorAmount');
     const irpfExtraAmount = round2(baseAmount * irpfExtraPercent / 100);
     const importeLimpio = round2(baseAmount - irpfAmount - irpfExtraAmount - importeAutonomos);
     const importeDiezmo = round2(importeLimpio * diezmoPercent / 100 + ofrendaSueldo);
-    summaryFields.base.textContent = formatAmount(baseAmount);
-    summaryFields.vat.textContent = formatAmount(vatAmount);
-    summaryFields.irpf.textContent = formatAmount(irpfAmount);
-    summaryFields.irpfExtra.textContent = formatAmount(irpfExtraAmount);
-    summaryFields.net.textContent = formatAmount(importeLimpio);
-    summaryFields.tithe.textContent = formatAmount(importeDiezmo);
+    const empresaBase = round2(totalAmount - nominaAmount - importeDiezmo);
+    const empresaTotal = round2(empresaBase - irpfExtraAmount - importeAutonomos - oficinaAmount - gestorAmount);
+    const sueldoNet = round2(nominaAmount - importeDiezmo);
+    const leftover = empresaTotal;
+
+    setAmount('hours', hoursWorked);
+    setAmount('base', baseAmount);
+    setAmount('vat', vatAmount);
+    setAmount('irpf', irpfAmount);
+    setAmount('irpfExtra', irpfExtraAmount);
+    setAmount('autonomos', importeAutonomos);
+    setAmount('net', importeLimpio);
+    setAmount('invoiceTotal', totalAmount);
+    setAmount('tithe', importeDiezmo);
+
+    setAmount('empresaBase', empresaBase, 'auto');
+    setAmount('empresaIrpfExtra', -irpfExtraAmount, 'auto');
+    setAmount('empresaAutonomos', -importeAutonomos, 'auto');
+    setAmount('empresaOficina', -oficinaAmount, 'auto');
+    setAmount('empresaGestor', -gestorAmount, 'auto');
+    setAmount('empresaTotal', empresaTotal, 'auto');
+
+    setAmount('salaryNomina', nominaAmount, 'auto');
+    setAmount('salaryTithe', -importeDiezmo, 'auto');
+    setAmount('salaryOfrenda', -ofrendaSueldo, 'auto');
+    setAmount('salaryNet', sueldoNet, 'auto');
+
+    setAmount('leftover', leftover, 'auto');
   }
 
-  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'ofrendaSueldo'].forEach(name => {
+  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'oficinaAmount', 'gestorAmount'].forEach(name => {
     if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
   });
 
