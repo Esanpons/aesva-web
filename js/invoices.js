@@ -3,11 +3,21 @@ let currentInvoicesBackdrop = null;
 
 document.getElementById("btnInvoices").addEventListener("click", openInvoicesPopup);
 
-function invoiceTotal(inv) {
-  const base = inv.lines.reduce((s, l) => s + l.qty * inv.priceHour, 0);
+function invoiceBreakdown(inv) {
+  const priceHour = inv.priceHour || 0;
+  const base = inv.lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * priceHour, 0);
   const vat = base * (inv.vat || 0) / 100;
   const irpf = base * (inv.irpf || 0) / 100;
-  return round2(base - irpf + vat);
+  return {
+    base: round2(base),
+    vat: round2(vat),
+    irpf: round2(irpf),
+    total: round2(base + vat - irpf),
+  };
+}
+
+function invoiceTotal(inv) {
+  return invoiceBreakdown(inv).total;
 }
 
 function incrementInvoiceNumber(no) {
@@ -106,7 +116,10 @@ function openInvoicesPopup() {
           const cust = customers.find(c => c.no === inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
-          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td><td>${invoiceTotal(inv).toFixed(2)}</td><td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
+          const totals = invoiceBreakdown(inv);
+          tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td>` +
+            `<td>${totals.base.toFixed(2)}</td><td>${totals.vat.toFixed(2)}</td><td>${totals.irpf.toFixed(2)}</td>` +
+            `<td>${totals.total.toFixed(2)}</td><td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (inv.no === selectedNo) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick', () => { const invc = invoices.find(i => i.no === inv.no); if (invc) openInvoiceModal(invc, no => { selectedNo = no; render(); }); });
