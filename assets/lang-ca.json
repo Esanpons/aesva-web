@@ -78,6 +78,8 @@
   "Nº": "Nº",
   "Nº cliente": "Nº client",
   "Nº tarea cliente": "Nº tasca client",
+  "Hay varias tareas con este Nº de tarea cliente.": "Hi ha diverses tasques amb aquest Nº de tasca client.",
+  "Otras tareas con este número:": "Altres tasques amb aquest número:",
   "NÚMERO:": "NÚMERO:",
   "Pagada": "Pagada",
   "Página {{PAGE_NUM}} de {{PAGE_TOTAL}}": "Pàgina {{PAGE_NUM}} de {{PAGE_TOTAL}}",
