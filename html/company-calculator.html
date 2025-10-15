@@ -37,11 +37,11 @@
 
                                 <div>
                                     <dt>Importe pendiente a facturar</dt>
-                                    <dd data-field="pending"></dd>
+                                    <dd class="calc-line calc-line--pending" data-field="pending"></dd>
                                 </div>
                                 <div>
                                     <dt>IVA</dt>
-                                    <dd data-field="vatAmount"></dd>
+                                    <dd class="calc-line calc-line--vat" data-field="vatAmount"></dd>
                                 </div>
                                 <div>
                                     <dt>IRPF</dt>
@@ -57,11 +57,19 @@
                                 </div>
                                 <div>
                                     <dt>Importe Diezmo</dt>
-                                    <dd data-field="tithe"></dd>
+                                    <dd class="calc-line calc-line--tithe" data-field="tithe"></dd>
                                 </div>
                                 <div>
-                                    <dt>Importes extras</dt>
-                                    <dd data-field="extras"></dd>
+                                    <dt>Nómina</dt>
+                                    <dd class="calc-line calc-line--nomina" data-field="nomina"></dd>
+                                </div>
+                                <div>
+                                    <dt>OpenAI + Office + Oficina</dt>
+                                    <dd class="calc-line calc-line--extras" data-field="extras"></dd>
+                                </div>
+                                <div>
+                                    <dt>Importe extra manual</dt>
+                                    <dd class="calc-line calc-line--manual-extra" data-field="manualExtra"></dd>
                                 </div>
                             </dl>
                         </section>
@@ -99,6 +107,9 @@
                 </label>
                 <label>Importes extras (Open AI+Microsoft+Oficina)
                     <input type="number" step="0.01" name="extraAmounts" />
+                </label>
+                <label>Importe extra manual
+                    <input type="number" step="0.01" name="manualExtra" />
                 </label>
             </div>
         </form>

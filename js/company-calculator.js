@@ -41,6 +41,7 @@ function openCompanyCalcPopup() {
       f.incomeAmount.value = company.incomeAmount || 0;
       if (f.irpfExtraAmount) f.irpfExtraAmount.value = '0.00';
       f.extraAmounts.value = company.extraAmounts || 0;
+      if (f.manualExtra) f.manualExtra.value = 0;
 
       // populate customers select
       customers.forEach(c => {
@@ -49,7 +50,48 @@ function openCompanyCalcPopup() {
         opt.textContent = `${c.no} - ${c.name}`;
         f.customerNo.appendChild(opt);
       });
-      if (customers.length) f.customerNo.value = customers[0].no;
+
+      function toTimestamp(value) {
+        if (!value) return NaN;
+        const date = value instanceof Date ? value : new Date(value);
+        const time = date.getTime();
+        return Number.isFinite(time) ? time : NaN;
+      }
+
+      function latestImputationCustomer() {
+        if (!Array.isArray(window.imputations) || !window.imputations.length) return null;
+        let latest = null;
+        let bestKey = -Infinity;
+        window.imputations.forEach(imp => {
+          if (!imp) return;
+          const id = Number(imp.id);
+          const key = Number.isFinite(id) ? id : (() => {
+            const inTime = toTimestamp(imp.inDate);
+            if (Number.isFinite(inTime)) return inTime;
+            const dateTime = toTimestamp(imp.date);
+            return Number.isFinite(dateTime) ? dateTime : -Infinity;
+          })();
+          if (key > bestKey) {
+            bestKey = key;
+            latest = imp;
+          }
+        });
+        if (!latest) return null;
+        if (latest.customerNo) return latest.customerNo;
+        if (latest.taskId) {
+          const relatedTask = tasks.find(t => t.id == latest.taskId);
+          if (relatedTask?.customerNo) return relatedTask.customerNo;
+        }
+        return null;
+      }
+
+      if (customers.length) {
+        const preferredCustomer = latestImputationCustomer();
+        const match = preferredCustomer != null
+          ? Array.from(f.customerNo.options).find(opt => opt.value == preferredCustomer)
+          : null;
+        f.customerNo.value = match ? match.value : customers[0].no;
+      }
 
       function loadCustomer(no) {
         const c = customers.find(x => x.no == no) || {};
@@ -64,7 +106,7 @@ function openCompanyCalcPopup() {
 
       const fieldsToWatch = [
         'minimumHours', 'priceHour', 'vat', 'irpf', 'amountAutonomos',
-        'amountNomina', 'incomeAmount', 'extraAmounts'
+        'amountNomina', 'incomeAmount', 'extraAmounts', 'manualExtra'
       ];
       fieldsToWatch.forEach(n => f[n].addEventListener('input', recalc));
 
@@ -120,6 +162,7 @@ function openCompanyCalcPopup() {
         const nomina = parseFloat(f.amountNomina.value) || 0;
         const extraIrpfPercent = parseFloat(f.incomeAmount.value) || 0;
         const extras = parseFloat(f.extraAmounts.value) || 0;
+        const manualExtra = parseFloat(f.manualExtra.value) || 0;
         const pending = minHours * price;
         const vatAmount = pending * vat / 100;
         const irpfAmount = pending * irpf / 100;
@@ -127,34 +170,25 @@ function openCompanyCalcPopup() {
         const netBeforeTithe = pending - irpfAmount - extraIrpfAmount - autonomos;
         const delmeBase = Math.max(netBeforeTithe, 0);
         const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
-        const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
-        const netAfterTithe = netBeforeTithe - delme;
-        const empresaTotal = autonomos + nomina + extras;
-        f.pending.value = pending.toFixed(2);
-        f.vatAmount.value = vatAmount.toFixed(2);
-        f.irpfAmount.value = irpfAmount.toFixed(2);
+        const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras) + manualExtra;
+        if (f.pending) f.pending.value = pending.toFixed(2);
+        if (f.vatAmount) f.vatAmount.value = vatAmount.toFixed(2);
+        if (f.irpfAmount) f.irpfAmount.value = irpfAmount.toFixed(2);
         if (f.irpfExtraAmount) f.irpfExtraAmount.value = extraIrpfAmount.toFixed(2);
-        f.tithe.value = delme.toFixed(2);
-        f.result.value = result.toFixed(2);
+        if (f.tithe) f.tithe.value = delme.toFixed(2);
+        if (f.result) f.result.value = result.toFixed(2);
 
         setAmount('hours', minHours, 'neutral');
         setAmount('price', price, 'neutral');
-        setPercent('vatPercent', vat);
-        setPercent('irpfPercent', irpf);
-        setPercent('irpfExtraPercent', extraIrpfPercent);
         setAmount('pending', pending, 'neutral');
         setAmount('vatAmount', vatAmount, 'positive');
-        setAmount('irpfAmount', irpfAmount, 'neutral');
-        setAmount('irpfExtraAmount', extraIrpfAmount, 'neutral');
         setAmount('irpfRetention', irpfAmount, 'negative');
         setAmount('irpfExtraRetention', extraIrpfAmount, 'negative');
-        setAmount('netBeforeTithe', netBeforeTithe, 'auto');
-        setAmount('netAfterTithe', netAfterTithe, 'auto');
-        setAmount('titheRetention', delme, 'negative');
         setAmount('autonomos', autonomos, 'negative');
         setAmount('nomina', nomina, 'negative');
         setAmount('extras', extras, 'negative');
-        setAmount('empresaTotal', empresaTotal, 'negative');
+        setAmount('manualExtra', manualExtra, manualExtra >= 0 ? 'positive' : 'negative');
+        setAmount('tithe', delme, 'negative');
         setAmount('result', result, 'auto');
       }
 
