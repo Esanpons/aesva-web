@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8" />
     <title>Cálculo horas</title>
     <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
+
 <body>
     <div id="companyCalcPage">
         <header>
@@ -17,32 +19,6 @@
                     <div class="company-calc-topline__meta">
                         <span class="extras-label">Cliente</span>
                         <strong id="companyCalcClient" class="extras-value"></strong>
-                        <div class="company-calc-meta">
-                            <span>Horas mínimas</span>
-                            <strong data-field="hours"></strong>
-                        </div>
-                        <div class="company-calc-meta">
-                            <span>Precio hora</span>
-                            <strong data-field="price"></strong>
-                        </div>
-                    </div>
-                    <div class="extras-topline__metrics">
-                        <div class="extras-metric extras-metric--invoice">
-                            <span>Importe FACTURA</span>
-                            <strong data-field="pending"></strong>
-                        </div>
-                        <div class="extras-metric">
-                            <span>Importe IVA</span>
-                            <strong data-field="vatAmount"></strong>
-                        </div>
-                        <div class="extras-metric">
-                            <span>Importe IRPF</span>
-                            <strong data-field="irpfAmount"></strong>
-                        </div>
-                        <div class="extras-metric">
-                            <span>IRPF extra</span>
-                            <strong data-field="irpfExtraAmount"></strong>
-                        </div>
                     </div>
                 </div>
                 <div class="extras-cards company-calc-cards">
@@ -50,37 +26,43 @@
                         <section class="extras-card">
                             <h3>Parámetros</h3>
                             <dl class="extras-list">
-                                <div><dt>Horas mínimas</dt><dd data-field="hours"></dd></div>
-                                <div><dt>Precio hora</dt><dd data-field="price"></dd></div>
-                                <div><dt>% IVA</dt><dd data-field="vatPercent"></dd></div>
-                                <div><dt>% IRPF</dt><dd data-field="irpfPercent"></dd></div>
-                                <div><dt>% IRPF extra</dt><dd data-field="irpfExtraPercent"></dd></div>
-                            </dl>
-                        </section>
-                        <section class="extras-card">
-                            <h3>Disponible</h3>
-                            <dl class="extras-list">
-                                <div><dt>Importe limpio</dt><dd data-field="netBeforeTithe"></dd></div>
-                                <div><dt>Tras diezmo</dt><dd data-field="netAfterTithe"></dd></div>
-                            </dl>
-                        </section>
-                    </div>
-                    <div class="extras-card-stack">
-                        <section class="extras-card company-calc-retenciones">
-                            <h3>Retenciones</h3>
-                            <dl class="extras-list">
-                                <div><dt>IRPF</dt><dd data-field="irpfRetention"></dd></div>
-                                <div><dt>IRPF extra</dt><dd data-field="irpfExtraRetention"></dd></div>
-                                <div><dt>Diezmo</dt><dd data-field="titheRetention"></dd></div>
-                            </dl>
-                        </section>
-                        <section class="extras-card">
-                            <h3>Empresa</h3>
-                            <dl class="extras-list">
-                                <div><dt>Autónomos</dt><dd data-field="autonomos"></dd></div>
-                                <div><dt>Nómina</dt><dd data-field="nomina"></dd></div>
-                                <div><dt>Importes extras</dt><dd data-field="extras"></dd></div>
-                                <div class="extras-list__total"><dt>Total empresa</dt><dd data-field="empresaTotal"></dd></div>
+                                <div>
+                                    <dt>Horas mínimas</dt>
+                                    <dd data-field="hours"></dd>
+                                </div>
+                                <div>
+                                    <dt>Precio hora</dt>
+                                    <dd data-field="price"></dd>
+                                </div>
+
+                                <div>
+                                    <dt>Importe pendiente a facturar</dt>
+                                    <dd data-field="pending"></dd>
+                                </div>
+                                <div>
+                                    <dt>IVA</dt>
+                                    <dd data-field="vatAmount"></dd>
+                                </div>
+                                <div>
+                                    <dt>IRPF</dt>
+                                    <dd data-field="irpfRetention"></dd>
+                                </div>
+                                <div>
+                                    <dt>IRPF extra</dt>
+                                    <dd data-field="irpfExtraRetention"></dd>
+                                </div>
+                                <div>
+                                    <dt>Importe autonomos</dt>
+                                    <dd data-field="autonomos"></dd>
+                                </div>
+                                <div>
+                                    <dt>Importe Diezmo</dt>
+                                    <dd data-field="tithe"></dd>
+                                </div>
+                                <div>
+                                    <dt>Importes extras</dt>
+                                    <dd data-field="extras"></dd>
+                                </div>
                             </dl>
                         </section>
                     </div>
@@ -118,26 +100,9 @@
                 <label>Importes extras (Open AI+Microsoft+Oficina)
                     <input type="number" step="0.01" name="extraAmounts" />
                 </label>
-                <label>Importe pendiente
-                    <input type="number" step="0.01" name="pending" readonly />
-                </label>
-                <label>Importe IVA
-                    <input type="number" step="0.01" name="vatAmount" readonly />
-                </label>
-                <label>Importe IRPF
-                    <input type="number" step="0.01" name="irpfAmount" readonly />
-                </label>
-                <label>Importe IRPF extra
-                    <input type="number" step="0.01" name="irpfExtraAmount" readonly />
-                </label>
-                <label>Delme
-                    <input type="number" step="0.01" name="tithe" readonly />
-                </label>
-                <label>Resultado
-                    <input type="number" step="0.01" name="result" readonly />
-                </label>
             </div>
         </form>
     </div>
 </body>
+
 </html>
