@@ -1122,6 +1122,33 @@ table td a:hover {
   font-size: .82rem;
 }
 
+.company-calc-summary .calc-line {
+  font-weight: 600;
+}
+
+.company-calc-summary .calc-line--pending {
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.company-calc-summary .calc-line--vat {
+  color: #7c3aed;
+}
+
+.company-calc-summary .calc-line--tithe,
+.company-calc-summary .calc-line--nomina {
+  color: #16a34a;
+}
+
+.company-calc-summary .calc-line--extras {
+  color: #475569;
+}
+
+.company-calc-summary .calc-line--manual-extra {
+  color: #0f172a;
+}
+
 #companyCalcPage input[readonly] {
   background: #f1f5f9;
   color: #475569;

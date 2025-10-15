@@ -41,6 +41,7 @@ function openCompanyCalcPopup() {
       f.incomeAmount.value = company.incomeAmount || 0;
       if (f.irpfExtraAmount) f.irpfExtraAmount.value = '0.00';
       f.extraAmounts.value = company.extraAmounts || 0;
+      if (f.manualExtra) f.manualExtra.value = 0;
 
       // populate customers select
       customers.forEach(c => {
@@ -64,7 +65,7 @@ function openCompanyCalcPopup() {
 
       const fieldsToWatch = [
         'minimumHours', 'priceHour', 'vat', 'irpf', 'amountAutonomos',
-        'amountNomina', 'incomeAmount', 'extraAmounts'
+        'amountNomina', 'incomeAmount', 'extraAmounts', 'manualExtra'
       ];
       fieldsToWatch.forEach(n => f[n].addEventListener('input', recalc));
 
@@ -120,6 +121,7 @@ function openCompanyCalcPopup() {
         const nomina = parseFloat(f.amountNomina.value) || 0;
         const extraIrpfPercent = parseFloat(f.incomeAmount.value) || 0;
         const extras = parseFloat(f.extraAmounts.value) || 0;
+        const manualExtra = parseFloat(f.manualExtra.value) || 0;
         const pending = minHours * price;
         const vatAmount = pending * vat / 100;
         const irpfAmount = pending * irpf / 100;
@@ -127,7 +129,7 @@ function openCompanyCalcPopup() {
         const netBeforeTithe = pending - irpfAmount - extraIrpfAmount - autonomos;
         const delmeBase = Math.max(netBeforeTithe, 0);
         const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
-        const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
+        const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras) + manualExtra;
         if (f.pending) f.pending.value = pending.toFixed(2);
         if (f.vatAmount) f.vatAmount.value = vatAmount.toFixed(2);
         if (f.irpfAmount) f.irpfAmount.value = irpfAmount.toFixed(2);
@@ -144,6 +146,7 @@ function openCompanyCalcPopup() {
         setAmount('autonomos', autonomos, 'negative');
         setAmount('nomina', nomina, 'negative');
         setAmount('extras', extras, 'negative');
+        setAmount('manualExtra', manualExtra, manualExtra >= 0 ? 'positive' : 'negative');
         setAmount('tithe', delme, 'negative');
         setAmount('result', result, 'auto');
       }
