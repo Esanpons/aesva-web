@@ -303,6 +303,16 @@ function openInvoicesPopup() {
         total: bd.querySelector('#invoicesTable [data-total="total"]')
       };
 
+      const listAmountFormatter = new Intl.NumberFormat('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      function formatListAmount(value) {
+        const numeric = Number.isFinite(value) ? value : 0;
+        return listAmountFormatter.format(numeric);
+      }
+
       function closePopup() {
         bd.remove();
         currentInvoicesBackdrop = null;
@@ -346,11 +356,11 @@ function openInvoicesPopup() {
 
       function updateTotalsRow(totals) {
         if (!totalsCells.base) return;
-        totalsCells.base.textContent = totals.base.toFixed(2);
-        totalsCells.vat.textContent = totals.vat.toFixed(2);
-        totalsCells.irpf.textContent = totals.irpf.toFixed(2);
-        totalsCells.irpfExtra.textContent = totals.irpfExtra.toFixed(2);
-        totalsCells.total.textContent = totals.total.toFixed(2);
+        totalsCells.base.textContent = formatListAmount(totals.base);
+        totalsCells.vat.textContent = formatListAmount(totals.vat);
+        totalsCells.irpf.textContent = formatListAmount(totals.irpf);
+        totalsCells.irpfExtra.textContent = formatListAmount(totals.irpfExtra);
+        totalsCells.total.textContent = formatListAmount(totals.total);
       }
 
       function render() {
@@ -376,8 +386,8 @@ function openInvoicesPopup() {
           const irpfExtraPercent = numberOrZero(inv.irpfExtraPercent ?? (company?.incomeAmount ?? 0));
           const irpfExtraAmount = round2(totals.base * irpfExtraPercent / 100);
           tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td>` +
-            `<td>${totals.base.toFixed(2)}</td><td>${totals.vat.toFixed(2)}</td><td>${totals.irpf.toFixed(2)}</td>` +
-            `<td>${irpfExtraAmount.toFixed(2)}</td><td>${totals.total.toFixed(2)}</td>` +
+            `<td>${formatListAmount(totals.base)}</td><td>${formatListAmount(totals.vat)}</td><td>${formatListAmount(totals.irpf)}</td>` +
+            `<td>${formatListAmount(irpfExtraAmount)}</td><td>${formatListAmount(totals.total)}</td>` +
             `<td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (inv.no === selectedNo) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedNo = inv.no; render(); });

@@ -404,6 +404,7 @@ table {
   padding: .5rem .75rem;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+  color: #000;
 }
 
 #invoicesTable th {
