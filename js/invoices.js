@@ -293,7 +293,15 @@ function openInvoicesPopup() {
       const btnExtrasList = bd.querySelector('#BtnExtrasInvoice');
       const btnPrintList = bd.querySelector('#BtnPrintInv');
       const yearSel = bd.querySelector('#invoiceYearFilter');
+      const quarterSel = bd.querySelector('#invoiceQuarterFilter');
       const closeBtn = bd.querySelector('.close');
+      const totalsCells = {
+        base: bd.querySelector('#invoicesTable [data-total="base"]'),
+        vat: bd.querySelector('#invoicesTable [data-total="vat"]'),
+        irpf: bd.querySelector('#invoicesTable [data-total="irpf"]'),
+        irpfExtra: bd.querySelector('#invoicesTable [data-total="irpfExtra"]'),
+        total: bd.querySelector('#invoicesTable [data-total="total"]')
+      };
 
       function closePopup() {
         bd.remove();
@@ -317,6 +325,7 @@ function openInvoicesPopup() {
         years.sort((a, b) => b - a);
         yearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
         yearSel.value = current;
+        if (quarterSel) quarterSel.value = 'all';
       }
 
       function updateButtons() {
@@ -328,26 +337,64 @@ function openInvoicesPopup() {
         if (btnExtrasList) btnExtrasList.disabled = !has;
       }
 
+      function quarterFromDate(dateStr) {
+        if (!dateStr || dateStr.length < 7) return null;
+        const month = parseInt(dateStr.substring(5, 7), 10);
+        if (!Number.isFinite(month)) return null;
+        return Math.floor((month - 1) / 3) + 1;
+      }
+
+      function updateTotalsRow(totals) {
+        if (!totalsCells.base) return;
+        totalsCells.base.textContent = totals.base.toFixed(2);
+        totalsCells.vat.textContent = totals.vat.toFixed(2);
+        totalsCells.irpf.textContent = totals.irpf.toFixed(2);
+        totalsCells.irpfExtra.textContent = totals.irpfExtra.toFixed(2);
+        totalsCells.total.textContent = totals.total.toFixed(2);
+      }
+
       function render() {
         tableBody.innerHTML = '';
         const year = yearSel.value;
+        const quarter = quarterSel ? quarterSel.value : 'all';
         const list = invoices
           .filter(inv => inv.date.startsWith(year))
+          .filter(inv => {
+            if (quarter === 'all') return true;
+            const invQuarter = quarterFromDate(inv.date);
+            return invQuarter === parseInt(quarter, 10);
+          })
           .slice()
           .sort((a, b) => b.date.localeCompare(a.date) || compareInvoiceNo(b.no, a.no));
-        if (selectedNo === null && list.length) selectedNo = list[0].no;
+        if (!list.some(inv => inv.no === selectedNo)) selectedNo = list.length ? list[0].no : null;
+        const aggregateTotals = { base: 0, vat: 0, irpf: 0, irpfExtra: 0, total: 0 };
         list.forEach(inv => {
           const cust = customers.find(c => c.no === inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
           const totals = invoiceBreakdown(inv);
+          const irpfExtraPercent = numberOrZero(inv.irpfExtraPercent ?? (company?.incomeAmount ?? 0));
+          const irpfExtraAmount = round2(totals.base * irpfExtraPercent / 100);
           tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td>` +
             `<td>${totals.base.toFixed(2)}</td><td>${totals.vat.toFixed(2)}</td><td>${totals.irpf.toFixed(2)}</td>` +
-            `<td>${totals.total.toFixed(2)}</td><td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
+            `<td>${irpfExtraAmount.toFixed(2)}</td><td>${totals.total.toFixed(2)}</td>` +
+            `<td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (inv.no === selectedNo) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick', () => { const invc = invoices.find(i => i.no === inv.no); if (invc) openInvoiceModal(invc, no => { selectedNo = no; render(); }); });
           tableBody.appendChild(tr);
+          aggregateTotals.base += totals.base;
+          aggregateTotals.vat += totals.vat;
+          aggregateTotals.irpf += totals.irpf;
+          aggregateTotals.irpfExtra += irpfExtraAmount;
+          aggregateTotals.total += totals.total;
+        });
+        updateTotalsRow({
+          base: round2(aggregateTotals.base),
+          vat: round2(aggregateTotals.vat),
+          irpf: round2(aggregateTotals.irpf),
+          irpfExtra: round2(aggregateTotals.irpfExtra),
+          total: round2(aggregateTotals.total)
         });
         updateButtons();
       }
@@ -384,7 +431,11 @@ function openInvoicesPopup() {
           if (inv) openInvoiceExtrasModal(inv, () => render());
         });
       }
-      yearSel.addEventListener('change', render);
+      yearSel.addEventListener('change', () => {
+        if (quarterSel) quarterSel.value = 'all';
+        render();
+      });
+      if (quarterSel) quarterSel.addEventListener('change', render);
       closeBtn.addEventListener('click', closePopup);
 
       renderYearOptions();

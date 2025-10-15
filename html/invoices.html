@@ -14,15 +14,32 @@
             <button class="close" type="button">×</button>
         </header>
         <div class="section-header">
-            <h2>Listado de facturas</h2>
-            <div>
+            <div class="invoices-header-left">
+                <h2>Listado de facturas</h2>
+                <div class="invoices-filters">
+                    <label class="invoices-filter">
+                        <span>Año</span>
+                        <select id="invoiceYearFilter"></select>
+                    </label>
+                    <label class="invoices-filter">
+                        <span>Trimestre</span>
+                        <select id="invoiceQuarterFilter">
+                            <option value="all">Todos</option>
+                            <option value="1">1º trimestre</option>
+                            <option value="2">2º trimestre</option>
+                            <option value="3">3º trimestre</option>
+                            <option value="4">4º trimestre</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <div class="invoices-actions">
                 <button class="Buttons" id="BtnAddInvoice" type="button">+ Nueva factura</button>
                 <button class="Buttons primary" id="BtnEditInvoice" type="button" disabled>Editar</button>
                 <button class="Buttons" id="BtnDelInvoice" type="button" disabled>Eliminar</button>
                 <button class="Buttons" id="BtnExtrasInvoice" type="button" disabled>Resumen económico</button>
                 <button class="Buttons" id="BtnPrintInv" type="button" disabled>Imprimir</button>
             </div>
-            <label>Año <select id="invoiceYearFilter"></select></label>
         </div>
         <table id="invoicesTable">
             <thead>
@@ -33,11 +50,23 @@
                     <th>Base</th>
                     <th>IVA</th>
                     <th>IRPF</th>
+                    <th>IRPF extra</th>
                     <th>Total</th>
                     <th>Pagada</th>
                 </tr>
             </thead>
             <tbody></tbody>
+            <tfoot>
+                <tr class="invoices-totals-row">
+                    <td colspan="3">Totales</td>
+                    <td data-total="base">0,00</td>
+                    <td data-total="vat">0,00</td>
+                    <td data-total="irpf">0,00</td>
+                    <td data-total="irpfExtra">0,00</td>
+                    <td data-total="total">0,00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
 
         <template id="invoiceModalTmpl">
