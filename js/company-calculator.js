@@ -50,7 +50,48 @@ function openCompanyCalcPopup() {
         opt.textContent = `${c.no} - ${c.name}`;
         f.customerNo.appendChild(opt);
       });
-      if (customers.length) f.customerNo.value = customers[0].no;
+
+      function toTimestamp(value) {
+        if (!value) return NaN;
+        const date = value instanceof Date ? value : new Date(value);
+        const time = date.getTime();
+        return Number.isFinite(time) ? time : NaN;
+      }
+
+      function latestImputationCustomer() {
+        if (!Array.isArray(window.imputations) || !window.imputations.length) return null;
+        let latest = null;
+        let bestKey = -Infinity;
+        window.imputations.forEach(imp => {
+          if (!imp) return;
+          const id = Number(imp.id);
+          const key = Number.isFinite(id) ? id : (() => {
+            const inTime = toTimestamp(imp.inDate);
+            if (Number.isFinite(inTime)) return inTime;
+            const dateTime = toTimestamp(imp.date);
+            return Number.isFinite(dateTime) ? dateTime : -Infinity;
+          })();
+          if (key > bestKey) {
+            bestKey = key;
+            latest = imp;
+          }
+        });
+        if (!latest) return null;
+        if (latest.customerNo) return latest.customerNo;
+        if (latest.taskId) {
+          const relatedTask = tasks.find(t => t.id == latest.taskId);
+          if (relatedTask?.customerNo) return relatedTask.customerNo;
+        }
+        return null;
+      }
+
+      if (customers.length) {
+        const preferredCustomer = latestImputationCustomer();
+        const match = preferredCustomer != null
+          ? Array.from(f.customerNo.options).find(opt => opt.value == preferredCustomer)
+          : null;
+        f.customerNo.value = match ? match.value : customers[0].no;
+      }
 
       function loadCustomer(no) {
         const c = customers.find(x => x.no == no) || {};
