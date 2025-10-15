@@ -45,7 +45,9 @@
                     <form id="expenseForm">
                         <input type="hidden" name="entryNo" />
                         <label>Código proveedor
-                            <input type="text" name="supplierCode" />
+                            <input type="text" name="supplierCode" list="expenseSupplierCodes" autocomplete="off" />
+                            <datalist id="expenseSupplierCodes"></datalist>
+                            <span class="field-hint" data-provider-display></span>
                         </label>
                         <label>Nº factura
                             <input type="text" name="invoiceNumber" required />

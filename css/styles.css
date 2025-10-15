@@ -619,10 +619,19 @@ table td a:hover {
 #expensesTable thead th,
 #customersTable thead th,
 #tasksTable thead th {
-  background: #f0f4f8;
+  background: var(--primary);
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: .5px;
   font-size: .7rem;
+}
+
+.table-subtext {
+  display: block;
+  margin-top: .15rem;
+  font-size: .65rem;
+  font-weight: 500;
+  color: #4a6379;
 }
 
 #providersTable td.numeric,
@@ -737,6 +746,14 @@ table td a:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .5px;
+}
+
+.modal label .field-hint {
+  font-size: .6rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #6b7a90;
 }
 
 .modal input,

@@ -1,6 +1,41 @@
 /*************** Gastos (popup externo) ****************/
 let currentExpensesBackdrop = null;
 
+const escapeHtml = value => (value == null)
+  ? ''
+  : String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+const findProviderByCode = code => {
+  if (!code) return null;
+  const normalized = String(code).trim().toLowerCase();
+  if (!normalized) return null;
+  return (window.providers || []).find(p => String(p.supplierCode || '').trim().toLowerCase() === normalized) || null;
+};
+
+const computeQuarterFromDate = dateStr => {
+  if (!dateStr) return '';
+  const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(dateStr);
+  if (!match) return '';
+  const month = parseInt(match[2], 10);
+  if (!Number.isFinite(month) || month < 1 || month > 12) return '';
+  return Math.floor((month - 1) / 3) + 1;
+};
+
+const ensureProvidersLoaded = () => {
+  if (window.providers && window.providers.length) return Promise.resolve();
+  if (typeof window.loadProviders === 'function') {
+    return window.loadProviders().catch(err => {
+      console.error(err);
+    });
+  }
+  return Promise.resolve();
+};
+
 const btnExpenses = document.getElementById('btnExpenses');
 if (btnExpenses) {
   btnExpenses.addEventListener('click', openExpensesPopup);
@@ -75,13 +110,20 @@ function openExpensesPopup() {
           const invoiceDate = expense.invoiceDate || '';
           const taxBaseDisplay = expense.taxableBase == null ? '' : formatAmount(expense.taxableBase);
           const vatDisplay = expense.vatRate == null ? '' : formatAmount(expense.vatRate);
+          const provider = findProviderByCode(expense.supplierCode);
+          const providerName = provider && provider.name ? escapeHtml(provider.name) : '';
+          const supplierCode = escapeHtml(expense.supplierCode || '');
+          const invoiceNumber = escapeHtml(expense.invoiceNumber || '');
+          const invoiceDateText = escapeHtml(invoiceDate);
+          const quarterText = expense.quarter != null ? escapeHtml(expense.quarter) : '';
+          const providerLabel = providerName ? `<span class="table-subtext">${providerName}</span>` : '';
           tr.innerHTML = `
-            <td>${expense.supplierCode || ''}</td>
-            <td>${expense.invoiceNumber || ''}</td>
-            <td>${invoiceDate}</td>
+            <td>${supplierCode}${providerLabel}</td>
+            <td>${invoiceNumber}</td>
+            <td>${invoiceDateText}</td>
             <td class="numeric">${taxBaseDisplay}</td>
             <td class="numeric">${vatDisplay}</td>
-            <td>${expense.quarter != null ? expense.quarter : ''}</td>`;
+            <td>${quarterText}</td>`;
           if (expense.entryNo === selectedEntryNo) tr.classList.add('selected');
           tr.addEventListener('click', () => {
             selectedEntryNo = expense.entryNo;
@@ -136,6 +178,7 @@ function openExpensesPopup() {
       closeBtn.addEventListener('click', closePopup);
 
       renderExpenses();
+      ensureProvidersLoaded().then(renderExpenses);
     });
 }
 
@@ -145,6 +188,51 @@ function openExpenseModal(expense = null, onSave) {
   const clone = tmpl.content.cloneNode(true);
   const backdrop = clone.querySelector('.modal-backdrop');
   const form = clone.querySelector('#expenseForm');
+
+  const supplierInput = form.elements.supplierCode;
+  const supplierList = clone.querySelector('#expenseSupplierCodes');
+  const supplierPreview = form.querySelector('[data-provider-display]');
+  const invoiceDateInput = form.elements.invoiceDate;
+  const quarterSelect = form.elements.quarter;
+
+  const updateSupplierPreview = () => {
+    if (!supplierPreview) return;
+    const provider = findProviderByCode(supplierInput ? supplierInput.value : '');
+    if (provider) {
+      const parts = [];
+      if (provider.name) parts.push(provider.name);
+      if (provider.country) parts.push(provider.country);
+      if (provider.taxId) parts.push(provider.taxId);
+      supplierPreview.textContent = parts.join(' · ');
+    } else {
+      supplierPreview.textContent = '';
+    }
+  };
+
+  const populateSupplierOptions = () => {
+    if (!supplierList) return;
+    supplierList.innerHTML = '';
+    const list = [...(window.providers || [])]
+      .filter(p => p && p.supplierCode)
+      .sort((a, b) => String(a.supplierCode).localeCompare(String(b.supplierCode)));
+    list.forEach(provider => {
+      const option = document.createElement('option');
+      option.value = provider.supplierCode;
+      const parts = [];
+      if (provider.name) parts.push(provider.name);
+      if (provider.country) parts.push(provider.country);
+      option.label = parts.join(' · ');
+      option.textContent = parts.length ? `${provider.supplierCode} — ${parts.join(' · ')}` : provider.supplierCode;
+      supplierList.appendChild(option);
+    });
+  };
+
+  const autoFillQuarterIfEmpty = () => {
+    if (!quarterSelect || !invoiceDateInput) return;
+    if (quarterSelect.value) return;
+    const computed = computeQuarterFromDate(invoiceDateInput.value);
+    if (computed) quarterSelect.value = String(computed);
+  };
 
   if (expense) {
     Object.entries(expense).forEach(([k, v]) => {
@@ -163,6 +251,27 @@ function openExpenseModal(expense = null, onSave) {
   } else {
     form.reset();
   }
+
+  populateSupplierOptions();
+  updateSupplierPreview();
+
+  ensureProvidersLoaded().then(() => {
+    populateSupplierOptions();
+    updateSupplierPreview();
+  });
+
+  if (supplierInput) {
+    supplierInput.addEventListener('input', updateSupplierPreview);
+    supplierInput.addEventListener('change', updateSupplierPreview);
+  }
+
+  if (invoiceDateInput) {
+    invoiceDateInput.addEventListener('change', autoFillQuarterIfEmpty);
+    invoiceDateInput.addEventListener('blur', autoFillQuarterIfEmpty);
+  }
+
+  autoFillQuarterIfEmpty();
+  updateSupplierPreview();
 
   function closeModal() {
     backdrop.remove();
@@ -184,13 +293,24 @@ function openExpenseModal(expense = null, onSave) {
     const formData = new FormData(form);
     const raw = Object.fromEntries(formData.entries());
 
+    let quarterValue = raw.quarter;
+    if (!quarterValue) {
+      const computed = computeQuarterFromDate(raw.invoiceDate);
+      if (computed) {
+        quarterValue = String(computed);
+        if (quarterSelect) quarterSelect.value = quarterValue;
+      }
+    }
+
+    const quarterNumber = parseInt(quarterValue, 10);
+
     const payload = {
       supplierCode: (raw.supplierCode || '').trim(),
       invoiceNumber: (raw.invoiceNumber || '').trim(),
       invoiceDate: raw.invoiceDate,
       taxableBase: raw.taxableBase === '' ? null : parseFloat(raw.taxableBase),
       vatRate: raw.vatRate === '' ? null : parseFloat(raw.vatRate),
-      quarter: raw.quarter === '' ? null : parseInt(raw.quarter, 10)
+      quarter: !quarterValue || !Number.isFinite(quarterNumber) ? null : quarterNumber
     };
 
     if (!payload.invoiceNumber) {
