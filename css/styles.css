@@ -603,6 +603,35 @@ table td a:hover {
   white-space: nowrap;
 }
 
+#providersTable th,
+#providersTable td,
+#expensesTable th,
+#expensesTable td,
+#customersTable th,
+#customersTable td,
+#tasksTable th,
+#tasksTable td {
+  padding: .5rem .75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#providersTable thead th,
+#expensesTable thead th,
+#customersTable thead th,
+#tasksTable thead th {
+  background: #f0f4f8;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-size: .7rem;
+}
+
+#providersTable td.numeric,
+#providersTable th.numeric,
+#expensesTable td.numeric,
+#expensesTable th.numeric {
+  text-align: right;
+}
+
 #totalsBar {
   display: flex;
   gap: 2rem;

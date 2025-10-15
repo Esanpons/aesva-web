@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Proveedores</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+</head>
+
+<body>
+    <div id="providersPage">
+        <header>
+            <span class="modal-title">Proveedores</span>
+            <button class="close" type="button">×</button>
+        </header>
+        <div class="section-header">
+            <h2>Listado de proveedores</h2>
+            <div>
+                <button class="Buttons" id="BtnAddProvider" type="button">+ Nuevo proveedor</button>
+                <button class="Buttons primary" id="BtnEditProvider" type="button" disabled>Editar</button>
+                <button class="Buttons" id="BtnDelProvider" type="button" disabled>Eliminar</button>
+            </div>
+        </div>
+        <table id="providersTable">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>País</th>
+                    <th>CIF</th>
+                    <th>Código cuenta gestor</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <template id="providerModalTmpl">
+            <div class="modal-backdrop">
+                <div class="modal">
+                    <header>
+                        <span class="modal-title">Proveedor</span>
+                        <button class="close" type="button">×</button>
+                    </header>
+                    <form id="providerForm">
+                        <label>Código proveedor
+                            <input type="text" name="supplierCode" required />
+                        </label>
+                        <label>Nombre
+                            <input type="text" name="name" required />
+                        </label>
+                        <label>País
+                            <input type="text" name="country" />
+                        </label>
+                        <label>CIF
+                            <input type="text" name="taxId" />
+                        </label>
+                        <label>Código cuenta gestor
+                            <input type="text" name="managerAccountCode" />
+                        </label>
+                        <footer class="full">
+                            <button type="submit" class="Buttons primary">Guardar</button>
+                        </footer>
+                    </form>
+                </div>
+            </div>
+        </template>
+    </div>
+</body>
+
+</html>
