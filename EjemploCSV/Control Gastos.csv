@@ -1,4 +1,4 @@
-COD PROVEIDOR;NUM. FRA.;DATA;Base Imposable;% IVA;Trimestre;Empty00;Num;Extraccio: NUM. FRA.2;Extraccio: DATA;Extraccio: NIF;Extraccio: PROVEIDOR;Extraccio: COMPTE;Extraccio: Base Imposable;Extraccio: %;Empty01;Empty02;Empty03;Empty04;Empty05;Extraccio: ES FACTURA?  SI/NO;Extraccio: ACTIVITAT EXEMPTA IVA?;Extraccio: PA�S;Extraccio: DESCRIPCI� INVERSI�
+COD PROVEIDOR;NUM. FRA.;DATA;Base Imposable;% IVA;Trimestre;Empty00;Num;Extraccio: NUM. FRA.2;Extraccio: DATA;Extraccio: NIF;Extraccio: PROVEIDOR;Extraccio: COMPTE;Extraccio: Base Imposable;Extraccio: %;Empty01;Empty02;Empty03;Empty04;Empty05;Extraccio: ES FACTURA?  SI/NO;Extraccio: ACTIVITAT EXEMPTA IVA?;Extraccio: PAIS;Extraccio: DESCRIPCIO INVERSIO
 Gas;21240103010792020;03/01/2024;115,42;10;1; ;1;21240103010792020;03/01/2024;A95758389;Iberdrola;629;115,42;0,1; ; ; ; ; ;SI;;España;Gas
 Serveis Microsoft Office;G035391350;05/01/2024;5,6;21;1; ;2;G035391350;05/01/2024;ESB78603495;Microsoft Iberica S.R.L.;629;5,6;0,21; ; ; ; ; ;SI;;España;Serveis Microsoft Office
 Llum;21240116010050900;16/01/2024;67,77;10;1; ;3;21240116010050900;16/01/2024;A66098435;Iberdrola;628;67,77;0,1; ; ; ; ; ;SI;;España;Llum
