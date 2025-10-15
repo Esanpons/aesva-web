@@ -102,7 +102,9 @@ function openExpensesPopup() {
       }
 
       const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const csvAmountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const csvNumberFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      const csvPercentFractionFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       function sanitizeCsvField(value) {
         if (value == null) return '';
@@ -119,6 +121,25 @@ function openExpensesPopup() {
         const num = Number.parseFloat(value);
         if (!Number.isFinite(num)) return '';
         return csvNumberFormatter.format(num);
+      }
+
+      function formatAmountCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvAmountFormatter.format(num);
+      }
+
+      function formatPercentFractionCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvPercentFractionFormatter.format(num);
+      }
+
+      function formatExcelTextCell(value) {
+        const sanitized = sanitizeCsvField(value);
+        if (sanitized === '') return '';
+        const escaped = sanitized.replace(/"/g, '""');
+        return `"=""${escaped}"""`;
       }
 
       function formatDateForCsv(dateStr) {
@@ -241,10 +262,10 @@ function openExpensesPopup() {
         list.forEach(expense => {
           const provider = findProviderByCode(expense.supplierCode);
           const invoiceDateFormatted = formatDateForCsv(expense.invoiceDate);
-          const taxBaseDisplay = formatNumberCsv(expense.taxableBase);
+          const taxBaseDisplay = formatAmountCsv(expense.taxableBase);
           const vatRateValue = Number.parseFloat(expense.vatRate);
           const vatPercentDisplay = formatNumberCsv(vatRateValue);
-          const vatFractionDisplay = Number.isFinite(vatRateValue) ? formatPercentCsv(vatRateValue / 100) : '';
+          const vatFractionDisplay = Number.isFinite(vatRateValue) ? formatPercentFractionCsv(vatRateValue / 100) : '';
           const quarterValue = getQuarterValue(expense);
           const quarterText = quarterValue != null ? String(quarterValue) : '';
           const yearValue = computeYearFromDate(expense.invoiceDate);
@@ -253,19 +274,19 @@ function openExpensesPopup() {
           quarterCounters.set(counterKey, nextSeq);
 
           const row = [
-            sanitizeCsvField(expense.supplierCode || ''),
-            sanitizeCsvField(expense.invoiceNumber || ''),
+            formatExcelTextCell(expense.supplierCode || ''),
+            formatExcelTextCell(expense.invoiceNumber || ''),
             invoiceDateFormatted,
             sanitizeCsvField(taxBaseDisplay),
             sanitizeCsvField(vatPercentDisplay),
             sanitizeCsvField(quarterText),
             '',
             String(nextSeq),
-            sanitizeCsvField(expense.invoiceNumber || ''),
+            formatExcelTextCell(expense.invoiceNumber || ''),
             invoiceDateFormatted,
-            sanitizeCsvField(provider && provider.taxId ? provider.taxId : ''),
+            formatExcelTextCell(provider && provider.taxId ? provider.taxId : ''),
             sanitizeCsvField(provider && provider.name ? provider.name : ''),
-            sanitizeCsvField(provider && provider.managerAccountCode ? provider.managerAccountCode : ''),
+            formatExcelTextCell(provider && provider.managerAccountCode ? provider.managerAccountCode : ''),
             sanitizeCsvField(taxBaseDisplay),
             sanitizeCsvField(vatFractionDisplay),
             '',
@@ -282,7 +303,7 @@ function openExpensesPopup() {
           rows.push(row.join(';'));
         });
 
-        return rows.join('\r\n');
+        return `\ufeff${rows.join('\r\n')}`;
       }
 
       function downloadCsv(content) {
