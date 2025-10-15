@@ -26,6 +26,14 @@ const computeQuarterFromDate = dateStr => {
   return Math.floor((month - 1) / 3) + 1;
 };
 
+const computeYearFromDate = dateStr => {
+  if (!dateStr) return null;
+  const match = /^([0-9]{4})/.exec(String(dateStr));
+  if (!match) return null;
+  const year = parseInt(match[1], 10);
+  return Number.isFinite(year) ? year : null;
+};
+
 const ensureProvidersLoaded = () => {
   if (window.providers && window.providers.length) return Promise.resolve();
   if (typeof window.loadProviders === 'function') {
@@ -68,6 +76,10 @@ function openExpensesPopup() {
       const btnEdit = backdrop.querySelector('#BtnEditExpense');
       const btnDel = backdrop.querySelector('#BtnDelExpense');
       const closeBtn = backdrop.querySelector('.close');
+      const filterYear = backdrop.querySelector('#expenseFilterYear');
+      const filterQuarter = backdrop.querySelector('#expenseFilterQuarter');
+
+      const translate = key => (window.i18n ? i18n.t(key) : key);
 
       function closePopup() {
         backdrop.remove();
@@ -95,8 +107,58 @@ function openExpensesPopup() {
         return Number.isFinite(num) ? amountFormatter.format(num) : '0,00';
       }
 
+      function populateYearOptions() {
+        if (!filterYear) return;
+        const previousValue = filterYear.value;
+        const years = Array.from(new Set(expenses
+          .map(expense => computeYearFromDate(expense.invoiceDate))
+          .filter(year => Number.isFinite(year))))
+          .sort((a, b) => b - a)
+          .map(year => String(year));
+
+        filterYear.innerHTML = '';
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = translate('Todos');
+        filterYear.appendChild(allOption);
+
+        years.forEach(year => {
+          const option = document.createElement('option');
+          option.value = year;
+          option.textContent = year;
+          filterYear.appendChild(option);
+        });
+
+        if (previousValue && years.includes(previousValue)) {
+          filterYear.value = previousValue;
+        } else {
+          filterYear.value = '';
+        }
+      }
+
       function renderExpenses() {
-        const sorted = [...expenses].sort((a, b) => {
+        populateYearOptions();
+
+        const yearFilter = filterYear ? filterYear.value : '';
+        const quarterFilter = filterQuarter ? filterQuarter.value : '';
+
+        const filtered = expenses.filter(expense => {
+          if (yearFilter) {
+            const invoiceYear = computeYearFromDate(expense.invoiceDate);
+            if (String(invoiceYear) !== yearFilter) return false;
+          }
+          if (quarterFilter) {
+            const quarterValue = expense.quarter == null ? '' : String(expense.quarter);
+            if (quarterValue !== quarterFilter) return false;
+          }
+          return true;
+        });
+
+        if (selectedEntryNo != null && !filtered.some(expense => expense.entryNo === selectedEntryNo)) {
+          selectedEntryNo = null;
+        }
+
+        const sorted = [...filtered].sort((a, b) => {
           const aDate = a.invoiceDate || '';
           const bDate = b.invoiceDate || '';
           if (aDate === bDate) return (a.entryNo || 0) - (b.entryNo || 0);
@@ -139,6 +201,14 @@ function openExpensesPopup() {
         });
         updateButtons();
       }
+
+      const handleFilterChange = () => {
+        selectedEntryNo = null;
+        renderExpenses();
+      };
+
+      if (filterYear) filterYear.addEventListener('change', handleFilterChange);
+      if (filterQuarter) filterQuarter.addEventListener('change', handleFilterChange);
 
       btnAdd.addEventListener('click', () => {
         openExpenseModal(null, entryNo => {

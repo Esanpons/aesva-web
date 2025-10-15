@@ -15,6 +15,22 @@
         </header>
         <div class="section-header">
             <h2>Listado de gastos</h2>
+            <div class="expenses-filters">
+                <label class="expenses-filter">Año
+                    <select id="expenseFilterYear">
+                        <option value="">Todos</option>
+                    </select>
+                </label>
+                <label class="expenses-filter">Trimestre
+                    <select id="expenseFilterQuarter">
+                        <option value="">Todos</option>
+                        <option value="1">1º</option>
+                        <option value="2">2º</option>
+                        <option value="3">3º</option>
+                        <option value="4">4º</option>
+                    </select>
+                </label>
+            </div>
             <div>
                 <button class="Buttons" id="BtnAddExpense" type="button">+ Nuevo gasto</button>
                 <button class="Buttons primary" id="BtnEditExpense" type="button" disabled>Editar</button>
