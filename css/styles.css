@@ -697,8 +697,8 @@ table td a:hover {
 }
 
 .modal.invoice-extras-modal {
-  max-width: 1180px;
-  width: min(1180px, 96%);
+  max-width: 1060px;
+  width: min(1060px, 96%);
 }
 
 .invoice-extras-modal form {
@@ -709,16 +709,18 @@ table td a:hover {
 .invoice-extras-summary {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: #f1f5f9;
+  gap: 1.35rem;
+  padding: 1.35rem;
+  background: #f5f7fb;
   border-radius: 14px;
   border: 1px solid var(--border);
 }
 
 .extras-topline {
   display: grid;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 220px) 1fr;
+  align-items: start;
+  gap: 1.5rem;
 }
 
 .extras-topline__factura {
@@ -743,17 +745,17 @@ table td a:hover {
 
 .extras-topline__metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: .85rem 1.25rem;
 }
 
 .extras-metric {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: .85rem;
-  padding: .85rem 1.1rem;
-  background: rgba(255, 255, 255, .78);
+  gap: .75rem;
+  padding: .7rem .95rem;
+  background: rgba(255, 255, 255, .82);
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .35);
 }
@@ -781,25 +783,25 @@ table td a:hover {
 
 .extras-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.1rem;
 }
 
 .extras-card-stack {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .extras-card {
   background: #fff;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, .35);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
-  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, .06);
+  padding: .9rem 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: .75rem;
+  gap: .65rem;
   height: 100%;
 }
 
@@ -816,27 +818,29 @@ table td a:hover {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: .65rem;
+  gap: .55rem;
 }
 
 .extras-list > div,
 .extras-list > .extras-list__total {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1rem;
+  gap: .5rem;
 }
 
 .extras-list dt {
   margin: 0;
   font-weight: 600;
   color: #1f2937;
+  font-size: .87rem;
 }
 
 .extras-list dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
-  font-size: .95rem;
+  font-size: .9rem;
+  text-align: right;
 }
 
 .extras-list__total dd {
@@ -845,17 +849,17 @@ table td a:hover {
 }
 
 .extras-highlight {
-  margin-top: .5rem;
+  margin-top: .35rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: .9rem 1.1rem;
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(23, 107, 135, .12), rgba(9, 132, 227, .1));
   border: 1px solid rgba(23, 107, 135, .25);
   font-weight: 700;
   color: #0f172a;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
 }
 
 .extras-highlight strong {
@@ -864,30 +868,41 @@ table td a:hover {
 
 .extras-form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem 1.35rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: .85rem 1.1rem;
+  margin-top: 1.5rem;
 }
 
 .extras-form-grid label {
   display: flex;
   flex-direction: column;
-  gap: .35rem;
-  font-size: .85rem;
+  gap: .3rem;
+  font-size: .83rem;
   font-weight: 600;
   color: #1f2937;
-  background: rgba(255, 255, 255, .85);
+  background: #ffffff;
   border: 1px solid rgba(148, 163, 184, .35);
-  border-radius: 10px;
-  padding: .75rem .9rem;
+  border-radius: 9px;
+  padding: .6rem .75rem;
+  box-shadow: inset 0 0 0 1px rgba(241, 245, 249, .6);
 }
 
 .extras-form-grid input {
-  padding: .55rem .7rem;
-  border-radius: 8px;
+  padding: .45rem .6rem;
+  border-radius: 6px;
   border: 1px solid rgba(148, 163, 184, .45);
   background: #fff;
-  font-size: .92rem;
+  font-size: .9rem;
+}
+
+@media (max-width: 1100px) {
+  .extras-topline {
+    grid-template-columns: 1fr;
+  }
+
+  .extras-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .extras-basic__highlight {
@@ -906,7 +921,7 @@ table td a:hover {
   font-size: .9rem;
   color: #1f2937;
   max-width: 100%;
-  text-align: right;
+  text-align: left;
   font-variant-numeric: normal;
 }
 
