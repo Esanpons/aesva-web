@@ -75,6 +75,7 @@ function openExpensesPopup() {
       const btnAdd = backdrop.querySelector('#BtnAddExpense');
       const btnEdit = backdrop.querySelector('#BtnEditExpense');
       const btnDel = backdrop.querySelector('#BtnDelExpense');
+      const btnExport = backdrop.querySelector('#BtnExportExpenses');
       const closeBtn = backdrop.querySelector('.close');
       const filterYear = backdrop.querySelector('#expenseFilterYear');
       const filterQuarter = backdrop.querySelector('#expenseFilterQuarter');
@@ -101,6 +102,63 @@ function openExpensesPopup() {
       }
 
       const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const csvAmountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const csvNumberFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      const csvPercentFractionFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      function sanitizeCsvField(value) {
+        if (value == null) return '';
+        return String(value).replace(/[\r\n]+/g, ' ').replace(/;/g, ',');
+      }
+
+      function formatNumberCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvNumberFormatter.format(num);
+      }
+
+      function formatPercentCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvNumberFormatter.format(num);
+      }
+
+      function formatAmountCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvAmountFormatter.format(num);
+      }
+
+      function formatPercentFractionCsv(value) {
+        const num = Number.parseFloat(value);
+        if (!Number.isFinite(num)) return '';
+        return csvPercentFractionFormatter.format(num);
+      }
+
+      function formatExcelTextCell(value) {
+        const sanitized = sanitizeCsvField(value);
+        if (sanitized === '') return '';
+        const escaped = sanitized.replace(/"/g, '""');
+        return `"=""${escaped}"""`;
+      }
+
+      function formatDateForCsv(dateStr) {
+        if (!dateStr) return '';
+        const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(dateStr);
+        if (!match) return '';
+        return `${match[3]}/${match[2]}/${match[1]}`;
+      }
+
+      function getQuarterValue(expense) {
+        if (!expense) return null;
+        const rawQuarter = expense.quarter;
+        if (rawQuarter !== undefined && rawQuarter !== null && rawQuarter !== '') {
+          const parsed = Number.parseInt(rawQuarter, 10);
+          if (Number.isFinite(parsed)) return parsed;
+        }
+        const computed = computeQuarterFromDate(expense.invoiceDate);
+        return Number.isFinite(computed) ? computed : null;
+      }
 
       function formatAmount(value) {
         const num = Number.parseFloat(value);
@@ -136,13 +194,11 @@ function openExpensesPopup() {
         }
       }
 
-      function renderExpenses() {
-        populateYearOptions();
-
+      function getFilteredExpenses() {
         const yearFilter = filterYear ? filterYear.value : '';
         const quarterFilter = filterQuarter ? filterQuarter.value : '';
 
-        const filtered = expenses.filter(expense => {
+        return expenses.filter(expense => {
           if (yearFilter) {
             const invoiceYear = computeYearFromDate(expense.invoiceDate);
             if (String(invoiceYear) !== yearFilter) return false;
@@ -153,6 +209,122 @@ function openExpensesPopup() {
           }
           return true;
         });
+      }
+
+      function sortExpensesForExport(list) {
+        return [...list].sort((a, b) => {
+          const yearA = computeYearFromDate(a.invoiceDate) ?? 0;
+          const yearB = computeYearFromDate(b.invoiceDate) ?? 0;
+          if (yearA !== yearB) return yearA - yearB;
+          const quarterA = getQuarterValue(a) ?? 0;
+          const quarterB = getQuarterValue(b) ?? 0;
+          if (quarterA !== quarterB) return quarterA - quarterB;
+          const dateA = a.invoiceDate || '';
+          const dateB = b.invoiceDate || '';
+          if (dateA !== dateB) return dateA.localeCompare(dateB);
+          const invoiceA = (a.invoiceNumber || '').toString();
+          const invoiceB = (b.invoiceNumber || '').toString();
+          return invoiceA.localeCompare(invoiceB);
+        });
+      }
+
+      function buildExpensesCsvContent(list) {
+        const header = [
+          'COD PROVEIDOR',
+          'NUM. FRA.',
+          'DATA',
+          'Base Imposable',
+          '% IVA',
+          'Trimestre',
+          'Empty00',
+          'Num',
+          'Extraccio: NUM. FRA.2',
+          'Extraccio: DATA',
+          'Extraccio: NIF',
+          'Extraccio: PROVEIDOR',
+          'Extraccio: COMPTE',
+          'Extraccio: Base Imposable',
+          'Extraccio: %',
+          'Empty01',
+          'Empty02',
+          'Empty03',
+          'Empty04',
+          'Empty05',
+          'Extraccio: ES FACTURA?  SI/NO',
+          'Extraccio: ACTIVITAT EXEMPTA IVA?',
+          'Extraccio: PAIS',
+          'Extraccio: DESCRIPCIO INVERSIO'
+        ];
+
+        const rows = [header.join(';')];
+        const quarterCounters = new Map();
+
+        list.forEach(expense => {
+          const provider = findProviderByCode(expense.supplierCode);
+          const invoiceDateFormatted = formatDateForCsv(expense.invoiceDate);
+          const taxBaseDisplay = formatAmountCsv(expense.taxableBase);
+          const vatRateValue = Number.parseFloat(expense.vatRate);
+          const vatPercentDisplay = formatNumberCsv(vatRateValue);
+          const vatFractionDisplay = Number.isFinite(vatRateValue) ? formatPercentFractionCsv(vatRateValue / 100) : '';
+          const quarterValue = getQuarterValue(expense);
+          const quarterText = quarterValue != null ? String(quarterValue) : '';
+          const yearValue = computeYearFromDate(expense.invoiceDate);
+          const counterKey = `${yearValue ?? 'noYear'}-${quarterValue ?? 'noQuarter'}`;
+          const nextSeq = (quarterCounters.get(counterKey) || 0) + 1;
+          quarterCounters.set(counterKey, nextSeq);
+
+          const row = [
+            formatExcelTextCell(expense.supplierCode || ''),
+            formatExcelTextCell(expense.invoiceNumber || ''),
+            invoiceDateFormatted,
+            sanitizeCsvField(taxBaseDisplay),
+            sanitizeCsvField(vatPercentDisplay),
+            sanitizeCsvField(quarterText),
+            '',
+            String(nextSeq),
+            formatExcelTextCell(expense.invoiceNumber || ''),
+            invoiceDateFormatted,
+            formatExcelTextCell(provider && provider.taxId ? provider.taxId : ''),
+            sanitizeCsvField(provider && provider.name ? provider.name : ''),
+            formatExcelTextCell(provider && provider.managerAccountCode ? provider.managerAccountCode : ''),
+            sanitizeCsvField(taxBaseDisplay),
+            sanitizeCsvField(vatFractionDisplay),
+            '',
+            '',
+            '',
+            '',
+            '',
+            'SI',
+            '',
+            sanitizeCsvField(provider && provider.country ? provider.country : ''),
+            sanitizeCsvField(provider && provider.name ? provider.name : '')
+          ];
+
+          rows.push(row.join(';'));
+        });
+
+        return `\ufeff${rows.join('\r\n')}`;
+      }
+
+      function downloadCsv(content) {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const fileName = `gastos-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.csv`;
+        a.href = url;
+        a.download = fileName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function renderExpenses() {
+        populateYearOptions();
+
+        const filtered = getFilteredExpenses();
 
         if (selectedEntryNo != null && !filtered.some(expense => expense.entryNo === selectedEntryNo)) {
           selectedEntryNo = null;
@@ -244,6 +416,25 @@ function openExpensesPopup() {
           alert(i18n.t('Error al eliminar el gasto'));
         }
       });
+
+      if (btnExport) {
+        btnExport.addEventListener('click', () => {
+          ensureProvidersLoaded().then(() => {
+            const filtered = getFilteredExpenses();
+            if (!filtered.length) {
+              alert(translate('No hay datos para exportar'));
+              return;
+            }
+            const sortedForExport = sortExpensesForExport(filtered);
+            const csvContent = buildExpensesCsvContent(sortedForExport);
+            if (!csvContent) {
+              alert(translate('No hay datos para exportar'));
+              return;
+            }
+            downloadCsv(csvContent);
+          });
+        });
+      }
 
       closeBtn.addEventListener('click', closePopup);
 
