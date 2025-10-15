@@ -78,6 +78,14 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     }
   });
 
+  const extrasLocked = Boolean(invoice?.closed ?? invoice?.isClosed ?? invoice?.paid);
+  if (extrasLocked) {
+    form.classList.add('extras-locked');
+    form.querySelectorAll('.extras-form-grid input').forEach(input => { input.disabled = true; });
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+  }
+
   const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   function formatAmount(value) {
@@ -181,9 +189,11 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     setAmount('leftover', leftover, 'auto');
   }
 
-  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount', 'tithePersons'].forEach(name => {
-    if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
-  });
+  if (!extrasLocked) {
+    ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount', 'tithePersons'].forEach(name => {
+      if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
+    });
+  }
 
   updateSummary();
 
@@ -205,6 +215,7 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (extrasLocked) return;
     const payload = sanitizeStrings({
       irpfExtraPercent: round2(parseInput('irpfExtraPercent')),
       importeAutonomos: round2(parseInput('importeAutonomos')),
