@@ -697,8 +697,8 @@ table td a:hover {
 }
 
 .modal.invoice-extras-modal {
-  max-width: 1100px;
-  width: min(1100px, 96%);
+  max-width: 1180px;
+  width: min(1180px, 96%);
 }
 
 .invoice-extras-modal form {
@@ -781,7 +781,13 @@ table td a:hover {
 
 .extras-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.extras-card-stack {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.25rem;
 }
 
@@ -794,6 +800,7 @@ table td a:hover {
   display: flex;
   flex-direction: column;
   gap: .75rem;
+  height: 100%;
 }
 
 .extras-card h3 {
@@ -857,9 +864,9 @@ table td a:hover {
 
 .extras-form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1.25rem;
-  margin-top: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem 1.35rem;
+  margin-top: 2rem;
 }
 
 .extras-form-grid label {
@@ -869,10 +876,14 @@ table td a:hover {
   font-size: .85rem;
   font-weight: 600;
   color: #1f2937;
+  background: rgba(255, 255, 255, .85);
+  border: 1px solid rgba(148, 163, 184, .35);
+  border-radius: 10px;
+  padding: .75rem .9rem;
 }
 
 .extras-form-grid input {
-  padding: .6rem .75rem;
+  padding: .55rem .7rem;
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, .45);
   background: #fff;
@@ -882,12 +893,21 @@ table td a:hover {
 .extras-basic__highlight {
   font-weight: 700;
   color: var(--primary);
+  font-size: 1.05rem;
 }
 
 .extras-basic__invoice {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.28rem;
   color: #0f172a;
+}
+
+.extras-text {
+  font-size: .9rem;
+  color: #1f2937;
+  max-width: 100%;
+  text-align: right;
+  font-variant-numeric: normal;
 }
 
 .extras-amount-negative {

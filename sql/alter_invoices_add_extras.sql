@@ -6,3 +6,4 @@ ALTER TABLE invoices ADD COLUMN IF NOT EXISTS ofrenda_sueldo NUMERIC(12,2);
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS empresa_extras_amount NUMERIC(12,2);
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS oficina_amount NUMERIC(12,2);
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS gestor_amount NUMERIC(12,2);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tithe_persons TEXT;

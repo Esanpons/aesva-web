@@ -64,11 +64,18 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     ofrendaSueldo: invoice.ofrendaSueldo ?? 0,
     empresaExtrasAmount: invoice.empresaExtrasAmount ?? company.extraAmounts ?? 0,
     oficinaAmount: invoice.oficinaAmount ?? 0,
-    gestorAmount: invoice.gestorAmount ?? 0
+    gestorAmount: invoice.gestorAmount ?? 0,
+    tithePersons: invoice.tithePersons ?? ''
   };
 
   Object.entries(defaults).forEach(([name, value]) => {
-    if (form.elements[name]) form.elements[name].value = Number.isFinite(Number(value)) ? (Math.round(Number(value) * 100) / 100).toFixed(2) : '';
+    const input = form.elements[name];
+    if (!input) return;
+    if (input.type === 'number') {
+      input.value = Number.isFinite(Number(value)) ? (Math.round(Number(value) * 100) / 100).toFixed(2) : '';
+    } else {
+      input.value = value ?? '';
+    }
   });
 
   const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -99,8 +106,21 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     });
   }
 
+  function setText(field, value) {
+    const nodes = summaryFields[field] || [];
+    nodes.forEach(node => {
+      node.textContent = value || '';
+    });
+  }
+
   function parseInput(name) {
     return numberOrZero(form.elements[name] ? form.elements[name].value : 0);
+  }
+
+  function parseText(name) {
+    const el = form.elements[name];
+    if (!el) return '';
+    return (el.value || '').toString().trim();
   }
 
   function updateSummary() {
@@ -112,6 +132,7 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     const empresaExtrasAmount = parseInput('empresaExtrasAmount');
     const oficinaAmount = parseInput('oficinaAmount');
     const gestorAmount = parseInput('gestorAmount');
+    const tithePersons = parseText('tithePersons');
     const irpfExtraAmount = round2(baseAmount * irpfExtraPercent / 100);
     const importeLimpio = round2(baseAmount - irpfAmount - irpfExtraAmount - importeAutonomos);
     const importeDiezmoBase = round2(importeLimpio * diezmoPercent / 100);
@@ -120,13 +141,14 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     const empresaIva = round2(vatAmount);
     const empresaTotal = round2(
       empresaBase -
+      empresaIva -
       irpfExtraAmount -
       importeAutonomos -
       empresaExtrasAmount -
       oficinaAmount -
       gestorAmount
     );
-    const sueldoNet = round2(nominaAmount - importeDiezmoTotal);
+    const sueldoNet = round2(nominaAmount - ofrendaSueldo);
     const leftover = empresaTotal;
 
     setAmount('hours', hoursWorked);
@@ -137,11 +159,9 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     setAmount('autonomos', importeAutonomos);
     setAmount('net', importeLimpio);
     setAmount('invoiceTotal', totalAmount);
-    setAmount('titheBaseTop', importeDiezmoBase);
-    setAmount('titheTotalTop', importeDiezmoTotal);
 
     setAmount('empresaBase', empresaBase, 'auto');
-    setAmount('empresaIva', empresaIva, 'auto');
+    setAmount('empresaIva', -empresaIva, 'auto');
     setAmount('empresaIrpfExtra', -irpfExtraAmount, 'auto');
     setAmount('empresaAutonomos', -importeAutonomos, 'auto');
     setAmount('empresaExtras', -empresaExtrasAmount, 'auto');
@@ -150,16 +170,18 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     setAmount('empresaTotal', empresaTotal, 'auto');
 
     setAmount('salaryNomina', nominaAmount, 'auto');
+    setAmount('salaryOffering', -ofrendaSueldo, 'auto');
     setAmount('salaryNet', sueldoNet, 'auto');
 
-    setAmount('titheBase', -importeDiezmoBase, 'auto');
-    setAmount('titheOffering', -ofrendaSueldo, 'auto');
-    setAmount('titheTotal', -importeDiezmoTotal, 'auto');
+    setAmount('titheBase', importeDiezmoBase, 'auto');
+    setAmount('titheOffering', ofrendaSueldo, 'auto');
+    setAmount('titheTotal', importeDiezmoTotal, 'auto');
+    setText('tithePersons', tithePersons);
 
     setAmount('leftover', leftover, 'auto');
   }
 
-  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount'].forEach(name => {
+  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount', 'tithePersons'].forEach(name => {
     if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
   });
 
@@ -191,7 +213,8 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
       ofrendaSueldo: round2(parseInput('ofrendaSueldo')),
       empresaExtrasAmount: round2(parseInput('empresaExtrasAmount')),
       oficinaAmount: round2(parseInput('oficinaAmount')),
-      gestorAmount: round2(parseInput('gestorAmount'))
+      gestorAmount: round2(parseInput('gestorAmount')),
+      tithePersons: parseText('tithePersons')
     });
     try {
       await db.update('invoices', { no: invoice.no }, payload);
