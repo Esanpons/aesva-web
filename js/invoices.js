@@ -5,7 +5,8 @@ document.getElementById("btnInvoices").addEventListener("click", openInvoicesPop
 
 function invoiceBreakdown(inv) {
   const priceHour = inv.priceHour || 0;
-  const base = inv.lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * priceHour, 0);
+  const lines = Array.isArray(inv.lines) ? inv.lines : [];
+  const base = lines.reduce((s, l) => s + (parseFloat(l.qty) || 0) * priceHour, 0);
   const vat = base * (inv.vat || 0) / 100;
   const irpf = base * (inv.irpf || 0) / 100;
   return {
@@ -18,6 +19,227 @@ function invoiceBreakdown(inv) {
 
 function invoiceTotal(inv) {
   return invoiceBreakdown(inv).total;
+}
+
+function numberOrZero(value) {
+  const num = parseFloat(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+async function openInvoiceExtrasModal(invoice, onSaved = null) {
+  if (!invoice) return;
+  const html = await fetch('html/invoice-extras.html').then(r => r.text());
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const tmpl = doc.getElementById('invoiceExtrasModalTmpl');
+  if (!tmpl) return;
+  if (window.i18n) i18n.apply(tmpl.content);
+  const clone = tmpl.content.cloneNode(true);
+  const bd = clone.querySelector('.modal-backdrop');
+  const modal = clone.querySelector('.modal');
+  const form = clone.querySelector('#invoiceExtrasForm');
+  const summary = clone.querySelector('.invoice-extras-summary');
+  const invoiceNoEl = clone.querySelector('#extrasInvoiceNo');
+  const summaryFields = {};
+  summary?.querySelectorAll('[data-field]').forEach(el => {
+    const field = el.dataset.field;
+    if (!summaryFields[field]) summaryFields[field] = [];
+    summaryFields[field].push(el);
+  });
+
+  const breakdown = invoiceBreakdown(invoice);
+  const baseAmount = breakdown.base;
+  const vatAmount = breakdown.vat;
+  const irpfAmount = breakdown.irpf;
+  const totalAmount = breakdown.total;
+  const invoiceLines = Array.isArray(invoice.lines) ? invoice.lines : [];
+  const hoursWorked = round2(invoiceLines.reduce((sum, line) => sum + numberOrZero(line.qty), 0));
+
+  if (invoiceNoEl) invoiceNoEl.textContent = invoice.no || '';
+
+  const defaults = {
+    irpfExtraPercent: invoice.irpfExtraPercent ?? company.incomeAmount ?? 0,
+    importeAutonomos: invoice.importeAutonomos ?? company.amountAutonomos ?? 0,
+    diezmoPercent: invoice.diezmoPercent ?? company.tithePercent ?? 0,
+    nominaAmount: invoice.nominaAmount ?? company.amountNomina ?? 0,
+    ofrendaSueldo: invoice.ofrendaSueldo ?? 0,
+    empresaExtrasAmount: invoice.empresaExtrasAmount ?? company.extraAmounts ?? 0,
+    oficinaAmount: invoice.oficinaAmount ?? 0,
+    gestorAmount: invoice.gestorAmount ?? 0,
+    tithePersons: invoice.tithePersons ?? ''
+  };
+
+  Object.entries(defaults).forEach(([name, value]) => {
+    const input = form.elements[name];
+    if (!input) return;
+    if (input.type === 'number') {
+      input.value = Number.isFinite(Number(value)) ? (Math.round(Number(value) * 100) / 100).toFixed(2) : '';
+    } else {
+      input.value = value ?? '';
+    }
+  });
+
+  const extrasLocked = Boolean(invoice?.closed ?? invoice?.isClosed ?? invoice?.paid);
+  if (extrasLocked) {
+    form.classList.add('extras-locked');
+    form.querySelectorAll('.extras-form-grid input').forEach(input => { input.disabled = true; });
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+  }
+
+  const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function formatAmount(value) {
+    const numeric = Number.isFinite(value) ? value : 0;
+    return amountFormatter.format(numeric);
+  }
+
+  function setAmount(field, value, tone = 'neutral') {
+    const nodes = summaryFields[field] || [];
+    const numeric = Number.isFinite(value) ? value : 0;
+    const classes = ['extras-amount-negative', 'extras-amount-positive', 'extras-amount-neutral'];
+    nodes.forEach(node => {
+      node.textContent = formatAmount(numeric);
+      node.classList.remove(...classes);
+      if (tone === 'auto') {
+        if (numeric < 0) node.classList.add('extras-amount-negative');
+        else if (numeric > 0) node.classList.add('extras-amount-positive');
+        else node.classList.add('extras-amount-neutral');
+      } else if (tone === 'negative') {
+        node.classList.add('extras-amount-negative');
+      } else if (tone === 'positive') {
+        node.classList.add('extras-amount-positive');
+      } else {
+        node.classList.add('extras-amount-neutral');
+      }
+    });
+  }
+
+  function setText(field, value) {
+    const nodes = summaryFields[field] || [];
+    nodes.forEach(node => {
+      node.textContent = value || '';
+    });
+  }
+
+  function parseInput(name) {
+    return numberOrZero(form.elements[name] ? form.elements[name].value : 0);
+  }
+
+  function parseText(name) {
+    const el = form.elements[name];
+    if (!el) return '';
+    return (el.value || '').toString().trim();
+  }
+
+  function updateSummary() {
+    const irpfExtraPercent = parseInput('irpfExtraPercent');
+    const importeAutonomos = parseInput('importeAutonomos');
+    const diezmoPercent = parseInput('diezmoPercent');
+    const nominaAmount = parseInput('nominaAmount');
+    const ofrendaSueldo = parseInput('ofrendaSueldo');
+    const empresaExtrasAmount = parseInput('empresaExtrasAmount');
+    const oficinaAmount = parseInput('oficinaAmount');
+    const gestorAmount = parseInput('gestorAmount');
+    const tithePersons = parseText('tithePersons');
+    const irpfExtraAmount = round2(baseAmount * irpfExtraPercent / 100);
+    const importeLimpio = round2(baseAmount - irpfAmount - irpfExtraAmount - importeAutonomos);
+    const importeDiezmoBase = round2(importeLimpio * diezmoPercent / 100);
+    const importeDiezmoTotal = round2(importeDiezmoBase + ofrendaSueldo);
+    const empresaBase = round2(totalAmount - importeDiezmoBase - nominaAmount);
+    const empresaIva = round2(vatAmount);
+    const empresaTotal = round2(
+      empresaBase -
+      empresaIva -
+      irpfExtraAmount -
+      importeAutonomos -
+      empresaExtrasAmount -
+      oficinaAmount -
+      gestorAmount
+    );
+    const sueldoNet = round2(nominaAmount - ofrendaSueldo);
+    const leftover = empresaTotal;
+
+    setAmount('hours', hoursWorked);
+    setAmount('base', baseAmount);
+    setAmount('vat', vatAmount);
+    setAmount('irpf', irpfAmount);
+    setAmount('irpfExtra', irpfExtraAmount);
+    setAmount('autonomos', importeAutonomos);
+    setAmount('net', importeLimpio);
+    setAmount('invoiceTotal', totalAmount);
+
+    setAmount('empresaBase', empresaBase, 'auto');
+    setAmount('empresaIva', -empresaIva, 'auto');
+    setAmount('empresaIrpfExtra', -irpfExtraAmount, 'auto');
+    setAmount('empresaAutonomos', -importeAutonomos, 'auto');
+    setAmount('empresaExtras', -empresaExtrasAmount, 'auto');
+    setAmount('empresaOficina', -oficinaAmount, 'auto');
+    setAmount('empresaGestor', -gestorAmount, 'auto');
+    setAmount('empresaTotal', empresaTotal, 'auto');
+
+    setAmount('salaryNomina', nominaAmount, 'auto');
+    setAmount('salaryOffering', -ofrendaSueldo, 'auto');
+    setAmount('salaryNet', sueldoNet, 'auto');
+
+    setAmount('titheBase', importeDiezmoBase, 'auto');
+    setAmount('titheOffering', ofrendaSueldo, 'auto');
+    setAmount('titheTotal', importeDiezmoTotal, 'auto');
+    setText('tithePersons', tithePersons);
+
+    setAmount('leftover', leftover, 'auto');
+  }
+
+  if (!extrasLocked) {
+    ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount', 'tithePersons'].forEach(name => {
+      if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
+    });
+  }
+
+  updateSummary();
+
+  function closeModal() {
+    document.removeEventListener('keydown', handleEsc, true);
+    bd.remove();
+  }
+
+  function handleEsc(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeModal();
+    }
+  }
+
+  document.addEventListener('keydown', handleEsc, true);
+  bd.querySelector('.close').addEventListener('click', closeModal);
+  bd.addEventListener('click', e => { if (e.target === bd) closeModal(); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (extrasLocked) return;
+    const payload = sanitizeStrings({
+      irpfExtraPercent: round2(parseInput('irpfExtraPercent')),
+      importeAutonomos: round2(parseInput('importeAutonomos')),
+      diezmoPercent: round2(parseInput('diezmoPercent')),
+      nominaAmount: round2(parseInput('nominaAmount')),
+      ofrendaSueldo: round2(parseInput('ofrendaSueldo')),
+      empresaExtrasAmount: round2(parseInput('empresaExtrasAmount')),
+      oficinaAmount: round2(parseInput('oficinaAmount')),
+      gestorAmount: round2(parseInput('gestorAmount')),
+      tithePersons: parseText('tithePersons')
+    });
+    try {
+      await db.update('invoices', { no: invoice.no }, payload);
+      Object.assign(invoice, payload);
+      if (typeof onSaved === 'function') onSaved(payload);
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert(i18n.t ? i18n.t('Error al guardar los datos') : 'Error al guardar los datos');
+    }
+  });
+
+  document.body.appendChild(clone);
+  if (modal) modal.focus?.();
 }
 
 function incrementInvoiceNumber(no) {
@@ -68,9 +290,28 @@ function openInvoicesPopup() {
       const btnAdd = bd.querySelector('#BtnAddInvoice');
       const btnEdit = bd.querySelector('#BtnEditInvoice');
       const btnDel = bd.querySelector('#BtnDelInvoice');
+      const btnExtrasList = bd.querySelector('#BtnExtrasInvoice');
       const btnPrintList = bd.querySelector('#BtnPrintInv');
       const yearSel = bd.querySelector('#invoiceYearFilter');
+      const quarterSel = bd.querySelector('#invoiceQuarterFilter');
       const closeBtn = bd.querySelector('.close');
+      const totalsCells = {
+        base: bd.querySelector('#invoicesTable [data-total="base"]'),
+        vat: bd.querySelector('#invoicesTable [data-total="vat"]'),
+        irpf: bd.querySelector('#invoicesTable [data-total="irpf"]'),
+        irpfExtra: bd.querySelector('#invoicesTable [data-total="irpfExtra"]'),
+        total: bd.querySelector('#invoicesTable [data-total="total"]')
+      };
+
+      const listAmountFormatter = new Intl.NumberFormat('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      function formatListAmount(value) {
+        const numeric = Number.isFinite(value) ? value : 0;
+        return listAmountFormatter.format(numeric);
+      }
 
       function closePopup() {
         bd.remove();
@@ -94,6 +335,7 @@ function openInvoicesPopup() {
         years.sort((a, b) => b - a);
         yearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
         yearSel.value = current;
+        if (quarterSel) quarterSel.value = 'all';
       }
 
       function updateButtons() {
@@ -102,28 +344,67 @@ function openInvoicesPopup() {
         btnEdit.disabled = !has;
         btnDel.disabled = !has || (inv && inv.paid);
         btnPrintList.disabled = !has;
+        if (btnExtrasList) btnExtrasList.disabled = !has;
+      }
+
+      function quarterFromDate(dateStr) {
+        if (!dateStr || dateStr.length < 7) return null;
+        const month = parseInt(dateStr.substring(5, 7), 10);
+        if (!Number.isFinite(month)) return null;
+        return Math.floor((month - 1) / 3) + 1;
+      }
+
+      function updateTotalsRow(totals) {
+        if (!totalsCells.base) return;
+        totalsCells.base.textContent = formatListAmount(totals.base);
+        totalsCells.vat.textContent = formatListAmount(totals.vat);
+        totalsCells.irpf.textContent = formatListAmount(totals.irpf);
+        totalsCells.irpfExtra.textContent = formatListAmount(totals.irpfExtra);
+        totalsCells.total.textContent = formatListAmount(totals.total);
       }
 
       function render() {
         tableBody.innerHTML = '';
         const year = yearSel.value;
+        const quarter = quarterSel ? quarterSel.value : 'all';
         const list = invoices
           .filter(inv => inv.date.startsWith(year))
+          .filter(inv => {
+            if (quarter === 'all') return true;
+            const invQuarter = quarterFromDate(inv.date);
+            return invQuarter === parseInt(quarter, 10);
+          })
           .slice()
           .sort((a, b) => b.date.localeCompare(a.date) || compareInvoiceNo(b.no, a.no));
-        if (selectedNo === null && list.length) selectedNo = list[0].no;
+        if (!list.some(inv => inv.no === selectedNo)) selectedNo = list.length ? list[0].no : null;
+        const aggregateTotals = { base: 0, vat: 0, irpf: 0, irpfExtra: 0, total: 0 };
         list.forEach(inv => {
           const cust = customers.find(c => c.no === inv.customerNo);
           const tr = document.createElement('tr');
           tr.dataset.no = inv.no;
           const totals = invoiceBreakdown(inv);
+          const irpfExtraPercent = numberOrZero(inv.irpfExtraPercent ?? (company?.incomeAmount ?? 0));
+          const irpfExtraAmount = round2(totals.base * irpfExtraPercent / 100);
           tr.innerHTML = `<td>${inv.no}</td><td>${inv.date}</td><td>${cust ? cust.name : ''}</td>` +
-            `<td>${totals.base.toFixed(2)}</td><td>${totals.vat.toFixed(2)}</td><td>${totals.irpf.toFixed(2)}</td>` +
-            `<td>${totals.total.toFixed(2)}</td><td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
+            `<td>${formatListAmount(totals.base)}</td><td>${formatListAmount(totals.vat)}</td><td>${formatListAmount(totals.irpf)}</td>` +
+            `<td>${formatListAmount(irpfExtraAmount)}</td><td>${formatListAmount(totals.total)}</td>` +
+            `<td>${inv.paid ? i18n.t('Sí') : i18n.t('No')}</td>`;
           if (inv.no === selectedNo) tr.classList.add('selected');
           tr.addEventListener('click', () => { selectedNo = inv.no; render(); });
           tr.addEventListener('dblclick', () => { const invc = invoices.find(i => i.no === inv.no); if (invc) openInvoiceModal(invc, no => { selectedNo = no; render(); }); });
           tableBody.appendChild(tr);
+          aggregateTotals.base += totals.base;
+          aggregateTotals.vat += totals.vat;
+          aggregateTotals.irpf += totals.irpf;
+          aggregateTotals.irpfExtra += irpfExtraAmount;
+          aggregateTotals.total += totals.total;
+        });
+        updateTotalsRow({
+          base: round2(aggregateTotals.base),
+          vat: round2(aggregateTotals.vat),
+          irpf: round2(aggregateTotals.irpf),
+          irpfExtra: round2(aggregateTotals.irpfExtra),
+          total: round2(aggregateTotals.total)
         });
         updateButtons();
       }
@@ -153,7 +434,18 @@ function openInvoicesPopup() {
         const inv = invoices.find(i => i.no === selectedNo);
         if (inv) printInvoice(inv);
       });
-      yearSel.addEventListener('change', render);
+      if (btnExtrasList) {
+        btnExtrasList.addEventListener('click', () => {
+          if (!selectedNo) return;
+          const inv = invoices.find(i => i.no === selectedNo);
+          if (inv) openInvoiceExtrasModal(inv, () => render());
+        });
+      }
+      yearSel.addEventListener('change', () => {
+        if (quarterSel) quarterSel.value = 'all';
+        render();
+      });
+      if (quarterSel) quarterSel.addEventListener('change', render);
       closeBtn.addEventListener('click', closePopup);
 
       renderYearOptions();
@@ -175,6 +467,7 @@ function openInvoiceModal(invoice = null, onSave) {
   const totalsDiv = clone.querySelector('#invoiceTotals');
   const totalSpan = clone.querySelector('#invoiceTotal');
   const btnPrint = clone.querySelector('#BtnPrintInvoice');
+  const btnExtrasModal = clone.querySelector('#BtnInvoiceExtras');
   const btnSave = form.querySelector('button[type="submit"]');
   const paidChk = form.elements['paid'];
   const linesPerPageInput = form.elements['arrayLinesInvoicePrint'];
@@ -241,6 +534,7 @@ function openInvoiceModal(invoice = null, onSave) {
     btnAddLine.disabled = locked;
     btnDelLine.disabled = selectedLine === null || locked;
     btnImport.disabled = locked;
+    if (btnExtrasModal) btnExtrasModal.disabled = locked || !invoice;
     updateTotal();
   }
 
@@ -331,6 +625,24 @@ function openInvoiceModal(invoice = null, onSave) {
   btnPrint.addEventListener('click', () => {
     printInvoice(collectData());
   });
+
+  if (btnExtrasModal) {
+    btnExtrasModal.disabled = !invoice;
+    btnExtrasModal.addEventListener('click', () => {
+      if (!invoice) {
+        alert(i18n.t('Guarda la factura antes de editar el resumen económico'));
+        return;
+      }
+      const currentData = collectData();
+      if (!currentData) return;
+      if (currentData.no !== invoice.no) {
+        alert(i18n.t('Guarda la factura antes de editar el resumen económico'));
+        return;
+      }
+      const invData = { ...invoice, ...currentData };
+      openInvoiceExtrasModal(invData, payload => { Object.assign(invoice, payload); });
+    });
+  }
 
   form.addEventListener('submit', async e => {
     e.preventDefault();

@@ -16,7 +16,7 @@ function openCompanyCalcPopup() {
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
       const modal = document.createElement('div');
-      modal.className = 'modal narrow';
+      modal.className = 'modal company-calc-modal';
       modal.appendChild(page);
       backdrop.appendChild(modal);
       document.body.appendChild(backdrop);
@@ -24,6 +24,15 @@ function openCompanyCalcPopup() {
 
       const form = backdrop.querySelector('#calcForm');
       const f = form.elements;
+      const summary = backdrop.querySelector('.company-calc-summary');
+      const clientDisplay = backdrop.querySelector('#companyCalcClient');
+      const summaryFields = {};
+
+      summary?.querySelectorAll('[data-field]').forEach(node => {
+        const field = node.dataset.field;
+        if (!summaryFields[field]) summaryFields[field] = [];
+        summaryFields[field].push(node);
+      });
 
       // populate company defaults
       f.minimumHours.value = company.minimumHoursMonth || 0;
@@ -47,6 +56,7 @@ function openCompanyCalcPopup() {
         f.priceHour.value = c.priceHour || 0;
         f.vat.value = c.vat || 0;
         f.irpf.value = c.irpf || 0;
+        updateClientLabel();
         recalc();
       }
 
@@ -57,6 +67,49 @@ function openCompanyCalcPopup() {
         'amountNomina', 'incomeAmount', 'extraAmounts'
       ];
       fieldsToWatch.forEach(n => f[n].addEventListener('input', recalc));
+
+      const amountFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const percentFormatter = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      function formatAmount(value) {
+        const numeric = Number.isFinite(value) ? value : 0;
+        return amountFormatter.format(numeric);
+      }
+
+      function setAmount(field, value, tone = 'neutral') {
+        const nodes = summaryFields[field] || [];
+        const numeric = Number.isFinite(value) ? value : 0;
+        const classes = ['extras-amount-negative', 'extras-amount-positive', 'extras-amount-neutral'];
+        nodes.forEach(node => {
+          node.textContent = formatAmount(numeric);
+          node.classList.remove(...classes);
+          if (tone === 'negative') node.classList.add('extras-amount-negative');
+          else if (tone === 'positive') node.classList.add('extras-amount-positive');
+          else if (tone === 'auto') {
+            if (numeric < 0) node.classList.add('extras-amount-negative');
+            else if (numeric > 0) node.classList.add('extras-amount-positive');
+            else node.classList.add('extras-amount-neutral');
+          } else {
+            node.classList.add('extras-amount-neutral');
+          }
+        });
+      }
+
+      function setPercent(field, value) {
+        const nodes = summaryFields[field] || [];
+        const numeric = Number.isFinite(value) ? value : 0;
+        nodes.forEach(node => {
+          node.textContent = `${percentFormatter.format(numeric)}%`;
+          node.classList.remove('extras-amount-negative', 'extras-amount-positive');
+          node.classList.add('extras-amount-neutral');
+        });
+      }
+
+      function updateClientLabel() {
+        if (!clientDisplay) return;
+        const option = f.customerNo.options[f.customerNo.selectedIndex];
+        clientDisplay.textContent = option ? option.textContent : '—';
+      }
 
       function recalc() {
         const minHours = parseFloat(f.minimumHours.value) || 0;
@@ -75,16 +128,41 @@ function openCompanyCalcPopup() {
         const delmeBase = Math.max(netBeforeTithe, 0);
         const delme = Math.ceil(delmeBase * (company.tithePercent || 0) / 100);
         const result = pending - (irpfAmount + extraIrpfAmount + autonomos + delme + nomina + extras);
+        const netAfterTithe = netBeforeTithe - delme;
+        const empresaTotal = autonomos + nomina + extras;
         f.pending.value = pending.toFixed(2);
         f.vatAmount.value = vatAmount.toFixed(2);
         f.irpfAmount.value = irpfAmount.toFixed(2);
         if (f.irpfExtraAmount) f.irpfExtraAmount.value = extraIrpfAmount.toFixed(2);
         f.tithe.value = delme.toFixed(2);
         f.result.value = result.toFixed(2);
+
+        setAmount('hours', minHours, 'neutral');
+        setAmount('price', price, 'neutral');
+        setPercent('vatPercent', vat);
+        setPercent('irpfPercent', irpf);
+        setPercent('irpfExtraPercent', extraIrpfPercent);
+        setAmount('pending', pending, 'neutral');
+        setAmount('vatAmount', vatAmount, 'positive');
+        setAmount('irpfAmount', irpfAmount, 'neutral');
+        setAmount('irpfExtraAmount', extraIrpfAmount, 'neutral');
+        setAmount('irpfRetention', irpfAmount, 'negative');
+        setAmount('irpfExtraRetention', extraIrpfAmount, 'negative');
+        setAmount('netBeforeTithe', netBeforeTithe, 'auto');
+        setAmount('netAfterTithe', netAfterTithe, 'auto');
+        setAmount('titheRetention', delme, 'negative');
+        setAmount('autonomos', autonomos, 'negative');
+        setAmount('nomina', nomina, 'negative');
+        setAmount('extras', extras, 'negative');
+        setAmount('empresaTotal', empresaTotal, 'negative');
+        setAmount('result', result, 'auto');
       }
 
       if (customers.length) loadCustomer(f.customerNo.value);
-      else recalc();
+      else {
+        updateClientLabel();
+        recalc();
+      }
 
       const closeBtn = backdrop.querySelector('.close');
       function close() {

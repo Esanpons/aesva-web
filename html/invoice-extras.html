@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Resumen factura</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+</head>
+<body>
+    <template id="invoiceExtrasModalTmpl">
+        <div class="modal-backdrop">
+            <div class="modal invoice-extras-modal">
+                <header>
+                    <span class="modal-title">Resumen económico factura</span>
+                    <button class="close" type="button">×</button>
+                </header>
+                <form id="invoiceExtrasForm">
+                    <div class="invoice-extras-summary full">
+                        <div class="extras-topline">
+                            <div class="extras-topline__factura">
+                                <span class="extras-label">Nº factura</span>
+                                <strong id="extrasInvoiceNo" class="extras-value"></strong>
+                            </div>
+                            <div class="extras-topline__metrics">
+                                <div class="extras-metric extras-metric--invoice">
+                                    <span>Importe FACTURA</span>
+                                    <strong data-field="invoiceTotal"></strong>
+                                </div>
+                                <div class="extras-metric"><span>Importe sin IVA a cobrar</span><strong data-field="base"></strong></div>
+                                <div class="extras-metric"><span>Importe de IVA</span><strong data-field="vat"></strong></div>
+                                <div class="extras-metric"><span>Importe de IRPF</span><strong data-field="irpf"></strong></div>
+                            </div>
+                        </div>
+                        <div class="extras-cards">
+                            <div class="extras-card-stack">
+                                <section class="extras-card">
+                                    <h3>Cálculos básicos</h3>
+                                    <dl class="extras-list">
+                                        <div><dt>Horas trabajadas</dt><dd data-field="hours"></dd></div>
+                                        <div><dt>Importe a cobrar SIN IVA</dt><dd data-field="base"></dd></div>
+                                        <div><dt>IVA</dt><dd data-field="vat"></dd></div>
+                                        <div><dt>IRPF</dt><dd data-field="irpf"></dd></div>
+                                        <div><dt>IRPF extra a guardar</dt><dd data-field="irpfExtra"></dd></div>
+                                        <div><dt>Importe autónomos</dt><dd data-field="autonomos"></dd></div>
+                                        <div><dt>Importe limpio</dt><dd class="extras-basic__highlight" data-field="net"></dd></div>
+                                        <div><dt>Importe FACTURA</dt><dd class="extras-basic__invoice" data-field="invoiceTotal"></dd></div>
+                                    </dl>
+                                </section>
+                                <section class="extras-card">
+                                    <h3>Empresa</h3>
+                                    <dl class="extras-list">
+                                        <div><dt>Empresa</dt><dd data-field="empresaBase"></dd></div>
+                                        <div><dt>Importe IVA</dt><dd data-field="empresaIva"></dd></div>
+                                        <div><dt>Importe IRPF extra</dt><dd data-field="empresaIrpfExtra"></dd></div>
+                                        <div><dt>Importe autónomos</dt><dd data-field="empresaAutonomos"></dd></div>
+                                        <div><dt>Importes extras</dt><dd data-field="empresaExtras"></dd></div>
+                                        <div><dt>Oficina</dt><dd data-field="empresaOficina"></dd></div>
+                                        <div><dt>Gestor</dt><dd data-field="empresaGestor"></dd></div>
+                                        <div class="extras-list__total"><dt>Total empresa</dt><dd data-field="empresaTotal"></dd></div>
+                                    </dl>
+                                </section>
+                            </div>
+                            <div class="extras-card-stack">
+                                <section class="extras-card">
+                                    <h3>Sueldo</h3>
+                                    <dl class="extras-list">
+                                        <div><dt>Nómina</dt><dd data-field="salaryNomina"></dd></div>
+                                        <div><dt>Ofrenda sueldo</dt><dd data-field="salaryOffering"></dd></div>
+                                        <div class="extras-list__total"><dt>Sueldo limpio</dt><dd data-field="salaryNet"></dd></div>
+                                    </dl>
+                                </section>
+                                <section class="extras-card">
+                                    <h3>Diezmo / ofrenda</h3>
+                                    <dl class="extras-list">
+                                        <div><dt>Importe Diezmo</dt><dd data-field="titheBase"></dd></div>
+                                        <div><dt>Ofrenda sueldo</dt><dd data-field="titheOffering"></dd></div>
+                                        <div><dt>Personas Diezmo</dt><dd data-field="tithePersons" class="extras-text"></dd></div>
+                                        <div class="extras-list__total"><dt>Total Diezmo</dt><dd data-field="titheTotal"></dd></div>
+                                    </dl>
+                                </section>
+                            </div>
+                        </div>
+                        <div class="extras-highlight">
+                            <span>Total sobrante</span>
+                            <strong data-field="leftover"></strong>
+                        </div>
+                    </div>
+                    <div class="extras-form-grid full">
+                        <label>IRPF extra %
+                            <input type="number" step="0.01" name="irpfExtraPercent" />
+                        </label>
+                        <label>Importe autónomos
+                            <input type="number" step="0.01" name="importeAutonomos" />
+                        </label>
+                        <label>% diezmo
+                            <input type="number" step="0.01" name="diezmoPercent" />
+                        </label>
+                        <label>Importe nómina
+                            <input type="number" step="0.01" name="nominaAmount" />
+                        </label>
+                        <label>Ofrenda sueldo
+                            <input type="number" step="0.01" name="ofrendaSueldo" />
+                        </label>
+                        <label>Importes extras (Open AI+Microsoft+Oficina)
+                            <input type="number" step="0.01" name="empresaExtrasAmount" />
+                        </label>
+                        <label>Oficina
+                            <input type="number" step="0.01" name="oficinaAmount" />
+                        </label>
+                        <label>Gestor
+                            <input type="number" step="0.01" name="gestorAmount" />
+                        </label>
+                        <label>Personas Diezmo
+                            <input type="text" name="tithePersons" />
+                        </label>
+                    </div>
+                    <footer class="full">
+                        <div class="extras-footer-actions">
+                            <button type="submit" class="Buttons primary">Guardar</button>
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
