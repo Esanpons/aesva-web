@@ -5,6 +5,8 @@ window.customers = [];
 window.tasks = [];
 window.invoices = [];
 window.imputations = [];
+window.providers = [];
+window.expenses = [];
 window.calendarDays = [];
 window.weekConfig = Array(7).fill(false);
 window.company = {};
@@ -22,6 +24,14 @@ async function loadCustomers() {
 async function loadTasks() {
   window.tasks = await db.select('tasks');
   window.taskSeq = Math.max(0, ...tasks.map(t => t.id)) + 1;
+}
+
+async function loadProviders() {
+  window.providers = await db.select('providers');
+}
+
+async function loadExpenses() {
+  window.expenses = await db.select('expenses');
 }
 
 async function loadInvoices() {
@@ -80,6 +90,8 @@ async function loadAllData(startDate = null, endDate = null) {
   await Promise.all([
     loadCustomers(),
     loadTasks(),
+    loadProviders(),
+    loadExpenses(),
     loadInvoices(),
     loadImputations(startDate, endDate),
     loadWeekConfig(),
@@ -91,6 +103,8 @@ async function loadAllData(startDate = null, endDate = null) {
 
 window.loadCustomers = loadCustomers;
 window.loadTasks = loadTasks;
+window.loadProviders = loadProviders;
+window.loadExpenses = loadExpenses;
 window.loadInvoices = loadInvoices;
 window.loadImputations = loadImputations;
 window.loadWeekConfig = loadWeekConfig;
