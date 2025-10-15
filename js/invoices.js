@@ -62,6 +62,7 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     diezmoPercent: invoice.diezmoPercent ?? company.tithePercent ?? 0,
     nominaAmount: invoice.nominaAmount ?? company.amountNomina ?? 0,
     ofrendaSueldo: invoice.ofrendaSueldo ?? 0,
+    empresaExtrasAmount: invoice.empresaExtrasAmount ?? company.extraAmounts ?? 0,
     oficinaAmount: invoice.oficinaAmount ?? 0,
     gestorAmount: invoice.gestorAmount ?? 0
   };
@@ -108,14 +109,24 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     const diezmoPercent = parseInput('diezmoPercent');
     const nominaAmount = parseInput('nominaAmount');
     const ofrendaSueldo = parseInput('ofrendaSueldo');
+    const empresaExtrasAmount = parseInput('empresaExtrasAmount');
     const oficinaAmount = parseInput('oficinaAmount');
     const gestorAmount = parseInput('gestorAmount');
     const irpfExtraAmount = round2(baseAmount * irpfExtraPercent / 100);
     const importeLimpio = round2(baseAmount - irpfAmount - irpfExtraAmount - importeAutonomos);
-    const importeDiezmo = round2(importeLimpio * diezmoPercent / 100 + ofrendaSueldo);
-    const empresaBase = round2(totalAmount - nominaAmount - importeDiezmo);
-    const empresaTotal = round2(empresaBase - irpfExtraAmount - importeAutonomos - oficinaAmount - gestorAmount);
-    const sueldoNet = round2(nominaAmount - importeDiezmo);
+    const importeDiezmoBase = round2(importeLimpio * diezmoPercent / 100);
+    const importeDiezmoTotal = round2(importeDiezmoBase + ofrendaSueldo);
+    const empresaBase = round2(totalAmount - importeDiezmoBase - nominaAmount);
+    const empresaIva = round2(vatAmount);
+    const empresaTotal = round2(
+      empresaBase -
+      irpfExtraAmount -
+      importeAutonomos -
+      empresaExtrasAmount -
+      oficinaAmount -
+      gestorAmount
+    );
+    const sueldoNet = round2(nominaAmount - importeDiezmoTotal);
     const leftover = empresaTotal;
 
     setAmount('hours', hoursWorked);
@@ -126,24 +137,29 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
     setAmount('autonomos', importeAutonomos);
     setAmount('net', importeLimpio);
     setAmount('invoiceTotal', totalAmount);
-    setAmount('tithe', importeDiezmo);
+    setAmount('titheBaseTop', importeDiezmoBase);
+    setAmount('titheTotalTop', importeDiezmoTotal);
 
     setAmount('empresaBase', empresaBase, 'auto');
+    setAmount('empresaIva', empresaIva, 'auto');
     setAmount('empresaIrpfExtra', -irpfExtraAmount, 'auto');
     setAmount('empresaAutonomos', -importeAutonomos, 'auto');
+    setAmount('empresaExtras', -empresaExtrasAmount, 'auto');
     setAmount('empresaOficina', -oficinaAmount, 'auto');
     setAmount('empresaGestor', -gestorAmount, 'auto');
     setAmount('empresaTotal', empresaTotal, 'auto');
 
     setAmount('salaryNomina', nominaAmount, 'auto');
-    setAmount('salaryTithe', -importeDiezmo, 'auto');
-    setAmount('salaryOfrenda', -ofrendaSueldo, 'auto');
     setAmount('salaryNet', sueldoNet, 'auto');
+
+    setAmount('titheBase', -importeDiezmoBase, 'auto');
+    setAmount('titheOffering', -ofrendaSueldo, 'auto');
+    setAmount('titheTotal', -importeDiezmoTotal, 'auto');
 
     setAmount('leftover', leftover, 'auto');
   }
 
-  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'oficinaAmount', 'gestorAmount'].forEach(name => {
+  ['irpfExtraPercent', 'importeAutonomos', 'diezmoPercent', 'nominaAmount', 'ofrendaSueldo', 'empresaExtrasAmount', 'oficinaAmount', 'gestorAmount'].forEach(name => {
     if (form.elements[name]) form.elements[name].addEventListener('input', updateSummary);
   });
 
@@ -173,6 +189,7 @@ async function openInvoiceExtrasModal(invoice, onSaved = null) {
       diezmoPercent: round2(parseInput('diezmoPercent')),
       nominaAmount: round2(parseInput('nominaAmount')),
       ofrendaSueldo: round2(parseInput('ofrendaSueldo')),
+      empresaExtrasAmount: round2(parseInput('empresaExtrasAmount')),
       oficinaAmount: round2(parseInput('oficinaAmount')),
       gestorAmount: round2(parseInput('gestorAmount'))
     });
