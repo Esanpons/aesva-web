@@ -683,6 +683,19 @@ table td a:hover {
   min-width: 120px;
 }
 
+.totals-right {
+  margin-left: auto;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#totalsBar .totals-right div {
+  align-items: flex-end;
+  text-align: right;
+}
+
 #totalsBar span {
   color: #555;
   margin-bottom: .2rem;
