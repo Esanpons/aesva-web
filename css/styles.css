@@ -687,13 +687,15 @@ table td a:hover {
   margin-left: auto;
   display: flex;
   gap: 1.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  align-items: stretch;
 }
 
 #totalsBar .totals-right div {
   align-items: flex-end;
   text-align: right;
+  flex: 0 0 auto;
 }
 
 #totalsBar span {
