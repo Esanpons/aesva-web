@@ -54,7 +54,7 @@ function openCompanyModal(tmpl) {
   form.addEventListener("submit", async e => {
     e.preventDefault();
     const data = sanitizeStrings(Object.fromEntries(new FormData(form).entries()));
-    ["amountAutonomos", "totalVacationDays", "amountNomina", "tithePercent", "minimumHoursMonth", "incomeAmount", "extraAmounts"]
+    ["amountAutonomos", "totalVacationDays", "amountNomina", "tithePercent", "minimumHoursMonth", "incomeAmount", "minimumDailyHoursGlobal", "extraAmounts"]
       .forEach(f => data[f] = parseFloat(data[f] || 0));
     try {
       if (Object.prototype.hasOwnProperty.call(company, 'id')) {

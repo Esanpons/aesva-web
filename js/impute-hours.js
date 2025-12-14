@@ -300,7 +300,7 @@ function updateTotalsBar(list = null) {
   const filtered = list || filterImputations();
 
   let totalMs = 0, totalDec = 0, totalMin = 0;
-  const dateMap = new Map(); // dateKey -> {billable,min,isHoliday,isVacation}
+  const dateMap = new Map(); // dateKey -> {billable,min,minGlobal,isHoliday,isVacation}
 
   filtered.forEach(r => {
     if (r.outDate && !r.noFee) {
@@ -311,7 +311,7 @@ function updateTotalsBar(list = null) {
 
     const dateKey = r.date.toDateString();
     if (!dateMap.has(dateKey)) {
-      dateMap.set(dateKey, { billable: false, min: 0, isHoliday: r.isHoliday, isVacation: r.isVacation });
+      dateMap.set(dateKey, { billable: false, min: 0, minGlobal: 0, isHoliday: r.isHoliday, isVacation: r.isVacation });
     }
     const entry = dateMap.get(dateKey);
     if (r.isHoliday) entry.isHoliday = true;
@@ -319,24 +319,35 @@ function updateTotalsBar(list = null) {
     if (!r.noFee && !r.isHoliday && !r.isVacation) {
       entry.billable = true;
       entry.min = Math.max(entry.min, r.minimumDailyHours || 0);
+      entry.minGlobal = Math.max(entry.minGlobal, r.minimumDailyHoursGlobal || 0);
     }
     dateMap.set(dateKey, entry);
   });
 
   let totLabor = 0;
+  let totLaborGlobal = 0;
   dateMap.forEach(entry => {
     if (entry.billable && !entry.isHoliday && !entry.isVacation) totLabor += entry.min;
+    if (entry.billable && !entry.isHoliday && !entry.isVacation) totLaborGlobal += entry.minGlobal;
   });
 
   const dates = filtered.map(r => r.date);
   const start = dates.length ? new Date(Math.min(...dates)) : null;
   const end = dates.length ? new Date(Math.max(...dates)) : null;
   let minDaily = 0;
-  filtered.forEach(r => { if (!r.noFee) minDaily = Math.max(minDaily, r.minimumDailyHours || 0); });
+  let minDailyGlobal = 0;
+  filtered.forEach(r => {
+    if (!r.noFee) {
+      minDaily = Math.max(minDaily, r.minimumDailyHours || 0);
+      minDailyGlobal = Math.max(minDailyGlobal, r.minimumDailyHoursGlobal || 0);
+    }
+  });
   let expected = 0;
+  let expectedGlobal = 0;
   if (start && end) {
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       if (weekConfig[d.getDay()]) expected += minDaily;
+      if (weekConfig[d.getDay()]) expectedGlobal += minDailyGlobal;
     }
   }
 
@@ -344,7 +355,9 @@ function updateTotalsBar(list = null) {
   document.getElementById("totDecimal").textContent = round2(totalDec).toString();
   document.getElementById("totMinutes").textContent = Math.round(totalMin);
   document.getElementById("totLabor").textContent = totLabor;
+  document.getElementById("totLaborGlobal").textContent = totLaborGlobal;
   document.getElementById("totExpected").textContent = expected;
+  document.getElementById("totExpectedGlobal").textContent = expectedGlobal;
 }
 
 function exportImputationsCsv() {
@@ -414,6 +427,7 @@ async function createOpenImputation(inDate, taskId, comments = '', noFee = false
   const task = tasks.find(t => t.id == taskId);
   const customer = task ? customers.find(c => c.no === task.customerNo) : null;
   const date = new Date(ri.getFullYear(), ri.getMonth(), ri.getDate());
+  const companyDailyHours = parseFloat(company?.minimumDailyHoursGlobal || 0);
   const rec = sanitizeStrings({
     id: imputationSeq++,
     date,
@@ -429,7 +443,8 @@ async function createOpenImputation(inDate, taskId, comments = '', noFee = false
     vatPercentage: customer ? customer.vat : 0,
     irpfPercentage: customer ? customer.irpf : 0,
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
-    minimumDailyHours: customer ? customer.minimumDailyHours : 0
+    minimumDailyHours: customer ? customer.minimumDailyHours : 0,
+    minimumDailyHoursGlobal: companyDailyHours
   });
   await applyAiCorrection('imputations', rec, {});
   selectedImputationId = rec.id;
@@ -608,7 +623,8 @@ async function updateImputation(id, inDate, outDate, taskId, comments, noFeeChec
     vatPercentage: customer ? customer.vat : 0,
     irpfPercentage: customer ? customer.irpf : 0,
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
-    minimumDailyHours: customer ? customer.minimumDailyHours : 0
+    minimumDailyHours: customer ? customer.minimumDailyHours : 0,
+    minimumDailyHoursGlobal: parseFloat(company?.minimumDailyHoursGlobal || rec.minimumDailyHoursGlobal || 0)
   });
   if (outDate) {
     const ro = round15(outDate); if (ro <= ri) { alert("La salida debe ser posterior."); return; }
@@ -638,6 +654,7 @@ async function createManualImputation(inDate, outDate, taskId, comments, noFeeCh
   if (ro <= ri) { alert("La salida debe ser posterior."); return; }
   const task = tasks.find(t => t.id == taskId);
   const customer = task ? customers.find(c => c.no === task.customerNo) : null;
+  const companyDailyHours = parseFloat(company?.minimumDailyHoursGlobal || 0);
   const rec = sanitizeStrings({
     id: imputationSeq++,
     date: new Date(ro.getFullYear(), ro.getMonth(), ro.getDate()),
@@ -654,7 +671,8 @@ async function createManualImputation(inDate, outDate, taskId, comments, noFeeCh
     vatPercentage: customer ? customer.vat : 0,
     irpfPercentage: customer ? customer.irpf : 0,
     minimumMonthlyHours: customer ? customer.minimumMonthlyHours : 0,
-    minimumDailyHours: customer ? customer.minimumDailyHours : 0
+    minimumDailyHours: customer ? customer.minimumDailyHours : 0,
+    minimumDailyHoursGlobal: companyDailyHours
   });
   await applyAiCorrection('imputations', rec, {});
   selectedImputationId = rec.id;
