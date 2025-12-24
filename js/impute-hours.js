@@ -9,10 +9,10 @@ function isCalendarHoliday(d) { return calendarLookup(d)?.type === "festivo"; }
 function isCalendarVacation(d) { return calendarLookup(d)?.type === "vacaciones"; }
 function isWeekend(d) { return !weekConfig[d.getDay()]; }
 
-async function loadFromDb(startDate = null, endDate = null) {
+async function loadFromDb(startDate = null, endDate = null, tasksStatus = 'incomplete') {
   btnAddImp.disabled = true;
   btnEntrar.disabled = true;
-  await loadAllData(startDate, endDate);
+  await loadAllData(startDate, endDate, tasksStatus);
   resumeOpenSession();
   renderImputations();
   loadTasksInSelects();

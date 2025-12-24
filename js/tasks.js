@@ -1,5 +1,6 @@
 /*************** Tareas (popup externo) ****************/
 let currentTasksBackdrop = null;
+let tasksLoadedStatus = 'incomplete';
 
 document.getElementById("btnTasks").addEventListener("click", openTasksPopup);
 
@@ -32,6 +33,8 @@ function openTasksPopup() {
       const searchInput = backdrop.querySelector("#taskSearchFilter");
       const closeBtn = backdrop.querySelector(".close");
 
+      statusFilter.value = tasksLoadedStatus;
+
       function closePopup() {
         backdrop.remove();
         currentTasksBackdrop = null;
@@ -44,6 +47,12 @@ function openTasksPopup() {
 
       let selectedTaskId = tasks.length ? tasks.slice().sort((a, b) => b.id - a.id)[0].id : null;
       let bulkSelection = new Set();
+
+      async function ensureTasksForStatus(status) {
+        if (status === tasksLoadedStatus) return;
+        await loadTasks(status);
+        tasksLoadedStatus = status;
+      }
 
       function updateButtons() {
         const hasSel = !!selectedTaskId;
@@ -62,7 +71,8 @@ function openTasksPopup() {
           for (const id of ids) {
             await db.update('tasks', { id }, { completed: flag });
           }
-          await loadFromDb();
+          await loadFromDb(null, null, statusFilter.value);
+          tasksLoadedStatus = statusFilter.value;
           bulkSelection.clear();
           renderTasks();
           renderImputations();
@@ -127,7 +137,13 @@ function openTasksPopup() {
         loadTasksInSelects();
       }
 
-      statusFilter.addEventListener('change', renderTasks);
+      statusFilter.addEventListener('change', async () => {
+        const status = statusFilter.value;
+        await ensureTasksForStatus(status);
+        renderTasks();
+        renderImputations();
+        loadTasksInSelects();
+      });
       searchInput.addEventListener('input', renderTasks);
       btnAdd.addEventListener("click", () => openTaskModal(null, id => { selectedTaskId = id; renderTasks(); }));
       btnEdit.addEventListener("click", () => {
@@ -147,7 +163,8 @@ function openTasksPopup() {
           (async () => {
             try {
               await db.delete('tasks', { id: selectedTaskId });
-              await loadFromDb();
+              await loadFromDb(null, null, statusFilter.value);
+              tasksLoadedStatus = statusFilter.value;
               selectedTaskId = null;
               renderTasks();
               loadTasksInSelects();
@@ -284,7 +301,11 @@ function openTaskModal(task = null, onSave, options = {}) {
         await db.insert('tasks', data);
         savedId = data.id;
       }
-      await loadFromDb();
+      const statusFilter = document.querySelector('#taskStatusFilter');
+      const status = statusFilter ? statusFilter.value : 'incomplete';
+      await loadFromDb(null, null, status);
+      tasksLoadedStatus = status;
+      if (statusFilter) statusFilter.value = status;
       if (duplicateWarning) alert(duplicateWarning);
       backdrop.remove();
       if (onSave) onSave(savedId);
