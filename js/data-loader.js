@@ -21,8 +21,11 @@ async function loadCustomers() {
   window.customers = await db.select('customers');
 }
 
-async function loadTasks() {
-  window.tasks = await db.select('tasks');
+async function loadTasks(status = 'incomplete') {
+  const filter = {};
+  if (status === 'completed') filter.completed = true;
+  else if (status === 'incomplete') filter.completed = false;
+  window.tasks = await db.select('tasks', filter);
   window.taskSeq = Math.max(0, ...tasks.map(t => t.id)) + 1;
 }
 
@@ -86,10 +89,10 @@ async function loadCompany() {
     company.invoiceNumbering = company.invoiceNextNumber;
 }
 
-async function loadAllData(startDate = null, endDate = null) {
+async function loadAllData(startDate = null, endDate = null, tasksStatus = 'incomplete') {
   await Promise.all([
     loadCustomers(),
-    loadTasks(),
+    loadTasks(tasksStatus),
     loadProviders(),
     loadExpenses(),
     loadInvoices(),
